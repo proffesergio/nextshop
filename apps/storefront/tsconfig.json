@@ -1,6 +1,7 @@
 {
   "extends": "@nextshop/tsconfig/nextjs.json",
   "compilerOptions": {
+    "declaration": false,
     "baseUrl": ".",
     "paths": {
       "@/*": [
