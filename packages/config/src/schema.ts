@@ -88,6 +88,8 @@ const featureFlagsSchema = z.object({
   pickupSlots: z.boolean().default(true),
   /** Saved/reusable shopping lists (Phase 1). */
   shoppingLists: z.boolean().default(true),
+  /** Owner admin panel at /admin (product/order/inventory CRUD). */
+  ownerAdmin: z.boolean().default(true),
 });
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
 

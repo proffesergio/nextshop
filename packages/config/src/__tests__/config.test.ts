@@ -41,6 +41,10 @@ describe("defineConfig", () => {
     expect(cfg.featureFlags.gpsTracking).toBe(false);
   });
 
+  it("defaults featureFlags.ownerAdmin to true", () => {
+    expect(defineConfig(valid).featureFlags.ownerAdmin).toBe(true);
+  });
+
   it("rejects a non-kebab-case id", () => {
     expect(() => defineConfig({ ...valid, id: "Test_Co" })).toThrow();
   });
