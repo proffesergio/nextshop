@@ -29,14 +29,21 @@ Plan: `writing-plans/phase-backend-custom.md`.
 **Pending one-time setup (user):** npm org `nextshop` + `NPM_TOKEN` GitHub secret (to publish);
 Neon project + `DATABASE_URL` + `pnpm --filter @nextshop/db db:push` (to go live with a real DB).
 
-**Phase 1 COMPLETE (green):** search **autocomplete** (`suggestProducts` in commerce-core, TDD) +
-`SearchAutocomplete` combobox (ui, ARIA + keyboard); **product detail page** `/products/[id]` +
-`ProductDetail` (add-to-cart, qty); ProductCard links to detail; `getProduct` in products.ts.
-82 tests green (commerce-core 42, storefront 21, db 5, config 9, scripts 5); typecheck 7/7, lint 6/6,
-both clients build (`/products/[id]` route present). Medusa fully removed; docs swept to custom backend.
+**Phase 1 COMPLETE (green):** search **autocomplete** (`suggestProducts`) + `SearchAutocomplete`
+combobox; **product detail page** `/products/[id]` + `ProductDetail`; `getProduct` in products.ts.
+
+**Owner admin COMPLETE (green):** `/admin` (plan: `writing-plans/phase-admin-owner.md`).
+Auth.js (next-auth@5 beta) Credentials over env `ADMIN_EMAIL`/`ADMIN_PASSWORD` (dev fallback
+owner@nextshop.dev / nextshop-dev; see `apps/storefront/.env.example`); pure logic in
+`src/lib/owner-auth.ts`. commerce-core: `nextOrderStatuses`/`canTransitionOrder`,
+`validateProductInput`/`validateProductPatch`, `verifyOwnerCredentials`, `isLowStock`,
+`Product.stock`. db: `stock` column. config: `featureFlags.ownerAdmin` (default true).
+Storefront: `admin/(protected)` layout (flag + session gate), dashboard, products CRUD pages,
+orders page with status mover; guarded `/api/admin/products[,(id)]` + `/api/admin/orders/[id]`.
+120 tests green (commerce-core 56, storefront 43, db 6, config 10, scripts 5); typecheck 7/7,
+lint 6/6, both clients build (all `/admin*` routes ƒ). Changeset `.changeset/owner-admin.md` added.
 
 **Next:**
-- Build the **owner admin** (`/admin`, Auth.js over `@nextshop/db`: product/order/inventory CRUD) — so
-  shop owners can manage their store. (Backend exists; no admin UI yet.)
-- Phase 2: real-time order tracking (status timeline + GPS) — `updateOrderStatus` already exists in db.
+- Phase 2: real-time order tracking (status timeline + GPS) — transitions + `updateOrderStatus` ready.
+- Phase 3: payments (Stripe/MobilePay/Klarna · bKash/Nagad/COD via config).
 - Optional: go live with a real DB (Neon `DATABASE_URL` + `pnpm --filter @nextshop/db db:push`).
