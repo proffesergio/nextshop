@@ -28,6 +28,14 @@ describe("InMemoryRepository — products", () => {
     await repo.createProduct({ id: "c", title: "Eggs", amount: 295, currency: "eur" });
     expect(await repo.listProducts()).toHaveLength(1);
   });
+
+  it("persists and patches stock", async () => {
+    const repo = new InMemoryRepository([]);
+    await repo.createProduct({ id: "s1", title: "Rice", amount: 100, currency: "eur", stock: 10 });
+    expect((await repo.getProduct("s1"))?.stock).toBe(10);
+    const updated = await repo.updateProduct("s1", { stock: 0 });
+    expect(updated?.stock).toBe(0);
+  });
 });
 
 describe("InMemoryRepository — orders", () => {

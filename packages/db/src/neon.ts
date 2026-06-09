@@ -19,6 +19,7 @@ function rowToProduct(r: ProductRow): Product {
     ...(r.category ? { category: r.category } : {}),
     ...(r.tag ? { tag: r.tag } : {}),
     ...(r.origin ? { origin: r.origin } : {}),
+    ...(r.stock != null ? { stock: r.stock } : {}),
   };
 }
 

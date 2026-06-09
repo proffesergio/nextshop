@@ -11,6 +11,7 @@ export const products = pgTable("products", {
   category: text("category"),
   tag: text("tag"),
   origin: text("origin"),
+  stock: integer("stock"),
 });
 
 /** Orders. Line items are stored as JSON (frozen snapshot at purchase). */
