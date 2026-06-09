@@ -17,6 +17,8 @@ export interface Product {
   category?: string;
   tag?: string;
   origin?: string;
+  /** Units on hand. Omitted = inventory not tracked for this product. */
+  stock?: number;
 }
 
 /** A line in the cart: a product and its quantity. */
