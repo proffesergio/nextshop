@@ -88,6 +88,24 @@ export function validateProductPatch(input: Record<string, unknown>): ProductVal
   return { ok: true, value };
 }
 
+/** Constant-time-ish string compare (avoids early-exit timing leaks). */
+function safeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+/** Check a login attempt against the configured owner credentials. */
+export function verifyOwnerCredentials(
+  input: { email: string; password: string },
+  expected: { email: string; password: string },
+): boolean {
+  if (!expected.email || !expected.password) return false;
+  const emailOk = input.email.trim().toLowerCase() === expected.email.trim().toLowerCase();
+  return emailOk && safeEqual(input.password, expected.password);
+}
+
 /** Default low-stock alert threshold for the admin dashboard. */
 export const LOW_STOCK_THRESHOLD = 5;
 

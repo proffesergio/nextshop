@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateProductInput, validateProductPatch, isLowStock } from "../admin.js";
+import { validateProductInput, validateProductPatch, isLowStock, verifyOwnerCredentials } from "../admin.js";
 
 describe("validateProductInput", () => {
   it("accepts a full valid product and normalizes it", () => {
@@ -45,6 +45,23 @@ describe("validateProductPatch", () => {
   it("rejects invalid provided fields", () => {
     const r = validateProductPatch({ amount: 0 });
     expect(r.ok).toBe(false);
+  });
+});
+
+describe("verifyOwnerCredentials", () => {
+  const expected = { email: "owner@shop.fi", password: "s3cret" };
+
+  it("accepts matching credentials (email case/space-insensitive)", () => {
+    expect(verifyOwnerCredentials({ email: " Owner@Shop.fi ", password: "s3cret" }, expected)).toBe(true);
+  });
+
+  it("rejects a wrong password or email", () => {
+    expect(verifyOwnerCredentials({ email: "owner@shop.fi", password: "nope" }, expected)).toBe(false);
+    expect(verifyOwnerCredentials({ email: "x@shop.fi", password: "s3cret" }, expected)).toBe(false);
+  });
+
+  it("rejects empty expected credentials", () => {
+    expect(verifyOwnerCredentials({ email: "", password: "" }, { email: "", password: "" })).toBe(false);
   });
 });
 
