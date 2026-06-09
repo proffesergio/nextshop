@@ -38,3 +38,9 @@ export async function getProducts(clientId: string): Promise<Product[]> {
 export async function getProduct(clientId: string, id: string): Promise<Product | null> {
   return getRepository(demoByClient[clientId] ?? []).getProduct(id);
 }
+
+/** The active client's repository (seeded demo data when no DATABASE_URL). */
+export function getStoreRepository() {
+  const clientId = process.env.STORE_CLIENT ?? "finnish-grocer";
+  return getRepository(demoByClient[clientId] ?? []);
+}
