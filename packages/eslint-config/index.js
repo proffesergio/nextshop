@@ -7,7 +7,7 @@ import prettier from "eslint-config-prettier";
  * Consumed by each package/app via `export { default } from "@nextshop/eslint-config"`.
  */
 export default tseslint.config(
-  { ignores: ["**/dist/**", "**/.next/**", "**/.medusa/**", "**/node_modules/**"] },
+  { ignores: ["**/dist/**", "**/.next/**", "**/.next-*/**", "**/node_modules/**"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   prettier,

@@ -1,115 +1,130 @@
 <div align="center">
 
-# 🛍️ Storefront Factory
+# 🛒 NextShop
 
-### One codebase. Infinite storefronts. Any product, any country.
+### A factory for independent storefronts.
 
-**A config-driven, production-ready eCommerce PWA template** — spin up a fully branded
-online store for a new company in minutes, run it from an admin panel, and deploy instantly.
+Build a production-ready eCommerce PWA **once**, then spin up a **fully isolated store for each
+client** — its own repo, its own admin, its own backend — all sharing a versioned design system.
 
-Powered by **Medusa** (commerce engine) · **Next.js** (PWA storefront) · **Turborepo** (monorepo)
+**Next.js** · **Neon Postgres** · **Drizzle** · **Turborepo** · **GitHub Packages**
 
-`Grocery 🥬 Finland` &nbsp;•&nbsp; `Clothing 🧵 Bangladesh` &nbsp;•&nbsp; `…your store next`
+`Tuore 🥬 Finland` &nbsp;•&nbsp; `FreeStyleBD 🧵 Bangladesh` &nbsp;•&nbsp; `…your client next`
 
 </div>
 
 ---
 
-## ✨ What this gives you
+## 🧠 The model: a factory + independent client repos
+
+```
+NextShop (THIS repo — the factory)
+  packages/config · ui · tsconfig · eslint-config   ─► published to GitHub Packages (@nextshop/*)
+  apps/storefront                                    ─► the base storefront template
+  packages/db                                        ─► custom backend (repository + Neon/Drizzle)
+  scripts/                                           ─► tooling to spin up client repos
+        │
+        ├──►  repo: tuore        ·  own Vercel  ·  own Neon DB  ·  own admin   🥬
+        └──►  repo: freestylebd  ·  own Vercel  ·  own Neon DB  ·  own admin   🧵
+```
+
+- **Each client is its own repo + its own backend** → fully isolated. A change to one client can
+  **never** break another, and each owner's admin/data is separate.
+- **Shared design & logic live in published packages.** Clients pull improvements with
+  `pnpm update @nextshop/ui @nextshop/config` — no copy-paste, no merge conflicts.
+- **This repo is the control-plane**: the template, the shared packages, and the spin-up tooling.
+
+> Why this and not "one codebase, many stores"? You chose **maximum independence** — different
+> products, designs, admin features, and release timing per client, with zero cross-client conflict.
+> See [`executing-plans/architecture-template-and-client-repos.md`](executing-plans/architecture-template-and-client-repos.md).
+
+---
+
+## ✨ What you get
 
 | | |
 |---|---|
-| 🎨 **Re-brand without code** | Colors, vibrant gradients, fonts, logo, locale, currency — all from one `store.config.ts`. |
-| 🌍 **Multi-store, multi-country** | Each company is a `clients/<id>` config. Switch with one env var. Grocery in 🇫🇮, clothing in 🇧🇩, anything next. |
-| ⚡ **Instant new store** | `pnpm new:client <company>` clones a ready store. Edit, deploy, done. |
-| 🛒 **Real commerce, included** | Medusa gives you cart, orders, **multi-warehouse inventory**, multi-region, payments, and an **admin panel** out of the box. |
-| 📱 **PWA-first** | Installable, fast, SSR + service worker, ready for app stores later. |
-| 🧩 **Built to grow** | Phased roadmap: search → tracking → payments → export compliance. Each phase ships independently. |
+| 🎨 **Re-brand from data** | Colors, vibrant gradients, fonts, logo, locale, currency — all in one `store.config.ts`. |
+| 🧩 **Vertical-agnostic** | Same engine for grocery 🥬 and clothing 🧵; products/strategy differ per client. |
+| 🛒 **Real commerce** | `@nextshop/db`: products, orders, inventory via Neon Postgres + Drizzle; owner admin (custom, planned). |
+| 📦 **Shared, versioned UI** | "Fresh Market Vibrancy" design system (gradients + Framer Motion) published as a package. |
+| 🔐 **Isolated admin** | Each client gets its own Neon DB + owner admin (custom, planned). |
+| 📱 **PWA-first** | Installable, fast, SSR + service worker. |
 
 ---
 
-## 🚀 Quickstart (run it locally)
+## 🚀 Run the template locally
 
 ```bash
-pnpm install            # install the whole monorepo
-pnpm dev                # start storefront (:3000) + Medusa admin
+export PATH="$HOME/.npm-global/bin:$PATH"   # pnpm on PATH
+pnpm install
 ```
 
-Pick which company's store to run with the **`STORE_CLIENT`** env var:
+Preview the demo storefronts (all at once, side by side):
+```bash
+./testservers/run-all.sh        # 🥬 :3000  ·  🧵 :3001  ·  base :3002
+./testservers/stop-all.sh
+```
+Or one at a time:
+```bash
+STORE_CLIENT=finnish-grocer pnpm --filter @nextshop/storefront dev   # http://localhost:3000
+```
+Full run guide (incl. the backend/DB): [`testservers/README.md`](testservers/README.md).
+
+---
+
+## 🏪 Launch a new client (the factory workflow)
+
+1. **Create the client's repo** from the template (own repo, isolated):
+   ```bash
+   gh repo create <client> --private --template <org>/nextshop-client-template
+   ```
+2. **Brand it** — edit `store.config.ts` (name, gradients, logo, locale, currency, payments, domains).
+3. **Set up its own backend** — create a free Neon project, set `DATABASE_URL`, run `pnpm --filter @nextshop/db db:push` to create tables.
+4. **Deploy** — storefront on Vercel (`STORE_CLIENT`, `DATABASE_URL`), add the domain.
+5. **Stay current** — `pnpm update @nextshop/ui @nextshop/config` pulls shared fixes/features.
+
+Step-by-step (domains, admin, payments): [`docs/PLAYBOOK.md`](docs/PLAYBOOK.md) ·
+git & isolation strategy: [`executing-plans/git-and-admin-playbook.md`](executing-plans/git-and-admin-playbook.md).
+
+---
+
+## 📦 Shared packages (published to GitHub Packages)
+
+| Package | What |
+|---------|------|
+| `@nextshop/config` | `StoreConfig` schema + loader + brand→CSS tokens |
+| `@nextshop/ui` | "Fresh Market Vibrancy" design system (consume via Next `transpilePackages`) |
+| `@nextshop/tsconfig` · `@nextshop/eslint-config` | shared dev config |
+
+Versioned with **Changesets**; published by `.github/workflows/release.yml`. Run `pnpm changeset`
+after a change to queue a version bump.
+
+---
+
+## 🗂️ Repo layout
+
+```
+apps/storefront      Next.js PWA (template base) + API route handlers (POST /api/orders, etc.)
+packages/db          custom backend: repository layer over Neon serverless Postgres via Drizzle (in-memory fallback when DATABASE_URL is unset)
+packages/            shared, published: config · ui · tsconfig · eslint-config
+clients/             demo configs (finnish-grocer, freestylebd, _example) — template showcase
+scripts/             new-client + (future) create-client-repo tooling
+testservers/         run every storefront + admin locally
+docs/PLAYBOOK.md     operator + developer handbook
+writing-plans/       per-phase implementation plans
+executing-plans/     architecture + git/admin playbooks
+ROADMAP.md           phase status · CONTEXT.md  resume point
+```
+
+---
+
+## 🧑‍💻 Developer commands
 
 ```bash
-STORE_CLIENT=finnish-grocer  pnpm --filter @nextshop/storefront dev   # 🥬 Tuore (grocery, FI)
-STORE_CLIENT=freestylebd     pnpm --filter @nextshop/storefront dev   # 🧵 FreeStyleBD (clothing, BD)
+pnpm dev · pnpm build · pnpm lint · pnpm typecheck · pnpm test · pnpm test:e2e
+pnpm new:client <name>     # add a demo client to the template (in-repo)
+pnpm changeset             # queue a shared-package version bump
 ```
 
-> Same code. Different brand, palette, currency, language, payment methods. That's the whole idea.
-
----
-
-## 🏪 Launch a new company's store in 4 steps
-
-```bash
-# 1. Scaffold a branded clone from the base template
-pnpm new:client acme-foods
-```
-
-```ts
-// 2. Open clients/acme-foods/store.config.ts and make it theirs
-brand:   { name: "Acme Foods", logo: "🍎", gradients: { hero: { from: "#…", to: "#…" } } },
-domains: { primary: "shop.acmefoods.com" },
-locales: { supported: ["en"], default: "en" },
-currency: "usd",
-payments: { enabledProviders: ["stripe", "manual"] },
-```
-
-```bash
-# 3. Point the deployment at this client
-STORE_CLIENT=acme-foods
-
-# 4. Deploy the storefront (Vercel) → add the domain → done.
-```
-
-🟢 **That's a live, branded, production store.** Full walkthrough — including domain DNS,
-admin-panel setup, and payment keys — lives in **[docs/PLAYBOOK.md](docs/PLAYBOOK.md)**.
-
----
-
-## 🗂️ How it's organized
-
-```
-apps/
-  storefront/   → Next.js PWA (the customer-facing store)
-  medusa/       → commerce engine + admin panel
-packages/
-  config/       → StoreConfig schema (the re-brand contract) + loader
-  ui/           → "Fresh Market Vibrancy" design system (gradients + Framer Motion)
-clients/
-  _example/     → 📋 base clone — `pnpm new:client` copies this
-  finnish-grocer/  → 🥬 grocery store (Finland, EUR)
-  freestylebd/     → 🧵 clothing store (Bangladesh, BDT)
-  index.ts      → registry of every store this repo manages
-scripts/
-  new-client.ts → the `pnpm new:client` scaffolder (tested)
-docs/PLAYBOOK.md → 📖 the operator + developer handbook
-writing-plans/   → 🧭 per-phase implementation plans
-```
-
----
-
-## 🧑‍💼 For store operators (no code)
-
-Everything that runs the business day-to-day lives in the **Medusa admin panel**:
-products, prices, stock across warehouses, orders, regions, and which payment
-providers are switched on. See **[docs/PLAYBOOK.md → Admin instructions](docs/PLAYBOOK.md)**.
-
-## 🧑‍💻 For developers
-
-- Add a feature the continuation way: write a spec → a plan in `writing-plans/` → build (graph-first).
-- `pnpm build` · `pnpm lint` · `pnpm typecheck` · `pnpm test` · `pnpm test:e2e`
-- Roadmap & phase status: **[ROADMAP.md](ROADMAP.md)**
-
----
-
-<div align="center">
-<sub>Build a real eCommerce business, made easy. 🌱</sub>
-</div>
+<div align="center"><sub>Build a real eCommerce business per client — isolated, brandable, made easy. 🌱</sub></div>

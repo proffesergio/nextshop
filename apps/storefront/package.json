@@ -13,7 +13,9 @@
   },
   "dependencies": {
     "@nextshop/clients": "workspace:*",
+    "@nextshop/commerce-core": "workspace:*",
     "@nextshop/config": "workspace:*",
+    "@nextshop/db": "workspace:*",
     "@nextshop/ui": "workspace:*",
     "framer-motion": "^11.11.17",
     "next": "14.2.18",

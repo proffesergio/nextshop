@@ -1,31 +1,42 @@
 # CONTEXT — resume point
 
-**Current Task:** Phase 0 foundation of the multi-storefront commerce template (Turborepo + Medusa + Next.js).
+**Project:** NextShop — a factory monorepo (Turborepo + pnpm) for spinning up many isolated client
+storefronts. Repo: github.com/proffesergio/nextshop (pushed, main).
 
-**Key Decisions:**
-- Engine = Medusa.js; storefront = Next.js PWA.
-- **ARCHITECTURE PIVOT (locked):** maximum client isolation — this repo becomes a **factory/template +
-  control-plane**; each client = its OWN repo, OWN Vercel deploy, OWN dedicated Medusa backend+DB+admin.
-  Shared fixes propagate via **published versioned packages** (GitHub Packages, `pnpm update`), not copy.
-  See `executing-plans/architecture-template-and-client-repos.md`.
-- The current `clients/<id>/store.config.ts` registry + `STORE_CLIENT` becomes **template demo data**;
-  the real client unit is a single `store.config.ts` in a client repo. Demo clients: finnish-grocer
-  (grocery/FI), freestylebd (clothing/BD), _example.
-- BLOCKER before publishing: lock repo name / GitHub org (sets npm scope, e.g. @shopforge/*). Names
-  suggested: ShopForge, ValoShop, NextBazaar, Lumo, NextKauppa.
-- Per-feature plans → `writing-plans/*.md`; architecture/exec plans → `executing-plans/*.md`;
-  continuation = graph-first (graph_continue → scan → read).
+**Architecture (current):**
+- Storefront = Next.js PWA (`apps/storefront`). **Custom backend, NOT Medusa.**
+- **Backend = `@nextshop/db`** repository pattern: `getRepository(seed?)` returns a **Neon/Drizzle**
+  Postgres repo when `DATABASE_URL` is set, else an **in-memory** repo seeded with demo products.
+  Interface covers products + orders (incl. `updateOrderStatus` for Phase 2 tracking).
+- Shared **published** packages (npm public, scope `@nextshop`): `config`, `ui`, `commerce-core`,
+  `db`, `tsconfig`, `eslint-config`. Each client = its own repo consuming these via `pnpm update`.
+- `clients/<id>/store.config.ts` + `STORE_CLIENT` = template demo data (finnish-grocer, freestylebd,
+  _example). Per-feature plans → `writing-plans/`, architecture/ops → `executing-plans/`.
 
-**Done so far (Phase 0 COMPLETE):** root monorepo; `packages/{tsconfig,eslint-config,config,ui}`;
-`apps/storefront` (Next.js PWA); `apps/medusa` (engine + seed, incl. Bangladesh Alphonso Mango +
-export-quality clothing); `clients/*`; `scripts/new-client.ts`; docs (`README.md`, `docs/PLAYBOOK.md`,
-`ROADMAP.md`, `writing-plans/`); CI (`.github/workflows/ci.yml`) + Playwright smoke.
-**Verification all green:** typecheck 6/6, lint 5/5, tests 17 passing, storefront builds for both
-clients, theme-switch + `pnpm new:client` proven. (No git yet — user inits manually.)
+**Why custom backend:** Medusa Cloud costs $/mo and self-hosting one Medusa per client is heavy.
+Decision: lightweight backend embedded in the Next app on free Neon Postgres, reusing commerce-core.
+Plan: `writing-plans/phase-backend-custom.md`.
 
-**Next Steps:**
-- Phase 1 (storefront UX/UI): wire real Medusa Store API, search+autocomplete, cart, shopping lists,
-  checkout with delivery/pickup slots. Plan: `writing-plans/phase-1-storefront-ux.md`.
-- To actually RUN Medusa: needs Postgres + `.env` (from `apps/medusa/.env.template`), then
-  `pnpm --filter @nextshop/medusa dev` and `... seed`.
-- Full plan: `~/.claude/plans/brainstorming-with-user-friendly-hazy-peach.md`.
+**Done & green (67 tests · typecheck 7/7 · lint 6/6 · builds):**
+- `commerce-core` (TDD): cart, search, money, lists, checkout (slots/total/validate), order (buildOrderDraft).
+- `ui`: SearchBar, CategoryTabs, QuantityStepper, CartDrawer, ListsDrawer, FulfillmentToggle, SlotPicker.
+- Storefront: search/filter/sort, cart drawer, saved shopping lists (`featureFlags.shoppingLists`),
+  `/checkout` with delivery/pickup slots (`featureFlags.pickupSlots`), products via `@nextshop/db`,
+  order persisted via `POST /api/orders` (fire-and-forget from CheckoutForm).
+- `apps/medusa` REMOVED; `@nextshop/medusa` dropped from changeset ignore; `.medusa` out of turbo.
+- Publishing: npm public, Changesets, `release.yml` (NPM_TOKEN). Repo pushed.
+
+**Pending one-time setup (user):** npm org `nextshop` + `NPM_TOKEN` GitHub secret (to publish);
+Neon project + `DATABASE_URL` + `pnpm --filter @nextshop/db db:push` (to go live with a real DB).
+
+**Phase 1 COMPLETE (green):** search **autocomplete** (`suggestProducts` in commerce-core, TDD) +
+`SearchAutocomplete` combobox (ui, ARIA + keyboard); **product detail page** `/products/[id]` +
+`ProductDetail` (add-to-cart, qty); ProductCard links to detail; `getProduct` in products.ts.
+82 tests green (commerce-core 42, storefront 21, db 5, config 9, scripts 5); typecheck 7/7, lint 6/6,
+both clients build (`/products/[id]` route present). Medusa fully removed; docs swept to custom backend.
+
+**Next:**
+- Build the **owner admin** (`/admin`, Auth.js over `@nextshop/db`: product/order/inventory CRUD) — so
+  shop owners can manage their store. (Backend exists; no admin UI yet.)
+- Phase 2: real-time order tracking (status timeline + GPS) — `updateOrderStatus` already exists in db.
+- Optional: go live with a real DB (Neon `DATABASE_URL` + `pnpm --filter @nextshop/db db:push`).

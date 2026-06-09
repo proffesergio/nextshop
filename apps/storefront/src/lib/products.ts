@@ -1,64 +1,40 @@
-import type { ProductCardProduct } from "@nextshop/ui";
+import type { Product } from "@nextshop/commerce-core";
+import { getRepository } from "@nextshop/db";
 
 /**
- * Phase 0 product source.
+ * Product source — delegates to the @nextshop/db repository.
  *
- * If NEXT_PUBLIC_MEDUSA_BACKEND_URL is set we fetch from the Medusa Store API;
- * otherwise we return per-vertical demo data so the storefront runs standalone
- * (and the theme-switch verification works without a database). Medusa wiring is
- * finalised in Phase 1.
+ * Each client's demo data is used as the in-memory seed when DATABASE_URL is
+ * not set; when it is set the Neon-backed repo is used instead.
  */
 
-const demoByClient: Record<string, ProductCardProduct[]> = {
+const demoByClient: Record<string, Product[]> = {
   "finnish-grocer": [
-    { id: "g1", title: "Organic Avocado", price: "€1,49", thumbnail: "🥑", tag: "Organic" },
-    { id: "g2", title: "Sourdough Rye", price: "€3,20", thumbnail: "🍞" },
-    { id: "g3", title: "Cherry Tomatoes", price: "€2,10", thumbnail: "🍅", tag: "Fresh" },
-    { id: "g4", title: "Free-range Eggs", price: "€2,95", thumbnail: "🥚" },
-    { id: "g5", title: "Alphonso Mango", price: "€4,50", thumbnail: "🥭", tag: "Bangladesh", origin: "Sourced from Bangladesh" },
-    { id: "g6", title: "Cold-press Olive Oil", price: "€8,90", thumbnail: "🫒", tag: "Fair trade" },
-    { id: "g7", title: "Wild Blueberries", price: "€3,75", thumbnail: "🫐", tag: "Fresh" },
-    { id: "g8", title: "Aged Gouda", price: "€5,40", thumbnail: "🧀" },
+    { id: "g1", title: "Organic Avocado", amount: 149, currency: "eur", thumbnail: "🥑", tag: "Organic", category: "produce" },
+    { id: "g2", title: "Sourdough Rye", amount: 320, currency: "eur", thumbnail: "🍞", category: "bakery" },
+    { id: "g3", title: "Cherry Tomatoes", amount: 210, currency: "eur", thumbnail: "🍅", tag: "Fresh", category: "produce" },
+    { id: "g4", title: "Free-range Eggs", amount: 295, currency: "eur", thumbnail: "🥚", category: "dairy" },
+    { id: "g5", title: "Alphonso Mango", amount: 450, currency: "eur", thumbnail: "🥭", tag: "Bangladesh", origin: "Sourced from Bangladesh", category: "produce" },
+    { id: "g6", title: "Cold-press Olive Oil", amount: 890, currency: "eur", thumbnail: "🫒", tag: "Fair trade", category: "pantry" },
+    { id: "g7", title: "Wild Blueberries", amount: 375, currency: "eur", thumbnail: "🫐", tag: "Fresh", category: "produce" },
+    { id: "g8", title: "Aged Gouda", amount: 540, currency: "eur", thumbnail: "🧀", category: "dairy" },
   ],
   freestylebd: [
-    { id: "c1", title: "Premium Denim Jacket", price: "৳3,490", thumbnail: "🧥", tag: "Export quality" },
-    { id: "c2", title: "Organic Cotton Tee", price: "৳890", thumbnail: "👕", tag: "Organic cotton" },
-    { id: "c3", title: "Tailored Chinos", price: "৳1,990", thumbnail: "👖" },
-    { id: "c4", title: "Knit Sweater", price: "৳2,250", thumbnail: "🧶", tag: "New" },
-    { id: "c5", title: "Linen Shirt", price: "৳1,450", thumbnail: "👔", tag: "Export quality" },
-    { id: "c6", title: "Canvas Sneakers", price: "৳2,790", thumbnail: "👟" },
-    { id: "c7", title: "Summer Dress", price: "৳1,890", thumbnail: "👗", tag: "New" },
-    { id: "c8", title: "Wool Scarf", price: "৳690", thumbnail: "🧣" },
+    { id: "c1", title: "Premium Denim Jacket", amount: 349000, currency: "bdt", thumbnail: "🧥", tag: "Export quality", category: "outerwear" },
+    { id: "c2", title: "Organic Cotton Tee", amount: 89000, currency: "bdt", thumbnail: "👕", tag: "Organic cotton", category: "tops" },
+    { id: "c3", title: "Tailored Chinos", amount: 199000, currency: "bdt", thumbnail: "👖", category: "bottoms" },
+    { id: "c4", title: "Knit Sweater", amount: 225000, currency: "bdt", thumbnail: "🧶", tag: "New", category: "tops" },
+    { id: "c5", title: "Linen Shirt", amount: 145000, currency: "bdt", thumbnail: "👔", tag: "Export quality", category: "tops" },
+    { id: "c6", title: "Canvas Sneakers", amount: 279000, currency: "bdt", thumbnail: "👟", category: "footwear" },
+    { id: "c7", title: "Summer Dress", amount: 189000, currency: "bdt", thumbnail: "👗", tag: "New", category: "dresses" },
+    { id: "c8", title: "Wool Scarf", amount: 69000, currency: "bdt", thumbnail: "🧣", category: "accessories" },
   ],
 };
 
-const fallback: ProductCardProduct[] = [
-  { id: "p1", title: "Sample Product", price: "€0,00", thumbnail: "📦" },
-];
+export async function getProducts(clientId: string): Promise<Product[]> {
+  return getRepository(demoByClient[clientId] ?? []).listProducts();
+}
 
-export async function getFeaturedProducts(clientId: string): Promise<ProductCardProduct[]> {
-  const backend = process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL;
-  if (backend) {
-    try {
-      const res = await fetch(`${backend}/store/products?limit=8`, {
-        headers: { "x-publishable-api-key": process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY ?? "" },
-        next: { revalidate: 60 },
-      });
-      if (res.ok) {
-        const data = (await res.json()) as { products?: Array<Record<string, unknown>> };
-        const products = data.products ?? [];
-        if (products.length > 0) {
-          return products.map((p) => ({
-            id: String(p.id),
-            title: String(p.title ?? "Product"),
-            price: "—",
-            thumbnail: typeof p.thumbnail === "string" ? p.thumbnail : "📦",
-          }));
-        }
-      }
-    } catch {
-      // fall through to demo data when the backend is unreachable in Phase 0
-    }
-  }
-  return demoByClient[clientId] ?? fallback;
+export async function getProduct(clientId: string, id: string): Promise<Product | null> {
+  return getRepository(demoByClient[clientId] ?? []).getProduct(id);
 }

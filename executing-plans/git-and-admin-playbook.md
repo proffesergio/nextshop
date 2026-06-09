@@ -97,7 +97,7 @@ Merge to `main`; every store has the *code*, only FreeStyleBD has it *on*.
 ### Per-client build isolation (Vercel)
 Each storefront = **its own Vercel project**, all pointing at the same repo, with:
 - **Root Directory:** `apps/storefront`
-- **Env:** `STORE_CLIENT=<id>`, `NEXT_PUBLIC_MEDUSA_BACKEND_URL`, `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY`
+- **Env:** `STORE_CLIENT=<id>`, `DATABASE_URL` (Neon connection string)
 - **Ignored Build Step** (so a store only rebuilds when *its* config or shared code changes):
 
 ```bash
@@ -127,36 +127,29 @@ back to `@nextshop/ui`. Keep overrides rare — every override is something you 
 
 ---
 
-## 6. Give a shop owner admin access (Medusa)
+## 6. Give a shop owner admin access
 
-Owners manage their store from the **Medusa admin panel** (`/app`) — products, prices, inventory,
-orders. They never touch code or infrastructure.
+Owners will manage their store from the **owner admin** — a custom `/admin` section inside the
+Next.js app, built with **Auth.js** over **`@nextshop/db`** (Neon Postgres). This is **planned,
+not yet built**.
 
-### Create the first admin user (CLI)
-```bash
-cd apps/medusa
-npx medusa user --email owner@tuore.fi --password "ChangeMe!123"
-# then have them log in at https://<backend>/app and change the password
-```
+When the owner admin is available, the flow will be:
+- Create an owner account directly in the `@nextshop/db` users table (or via an invite flow in the
+  admin UI).
+- The owner logs in at `https://<storefront>/admin`, changes their password on first login, and
+  manages products, orders, and inventory from there.
+- Each client has its **own Neon DB**, so owner data is fully isolated — one owner cannot see
+  another client's data.
 
-### Invite from the panel (preferred for additional staff)
-Admin → **Settings → Users → Invite** → enter the owner's email → they receive an invite link,
-set their password, and sign in.
+For now, product and order data can be managed by seeding the Neon DB directly or via API calls.
 
-### Multi-store on a SHARED backend
-If several clients share one Medusa instance, scope what each owner sees with **sales channels**
-and **stock locations** (e.g. Tuore's channel + Helsinki location). Note: fine-grained per-tenant
-**RBAC** is limited in core Medusa v2 — for strong isolation between unrelated companies, give a
-high-value client a **dedicated Medusa backend** (its own DB + admin), and point that storefront's
-`NEXT_PUBLIC_MEDUSA_BACKEND_URL` at it. Decide per client; document the choice in their config notes.
-
-### What owners can do vs. what stays with you
+### What owners can do vs. what stays with you (planned)
 | Owner (admin panel) | You (developer) |
 |----------------------|-----------------|
 | Products, categories, prices, images | Code, deploys, env/secrets |
-| Inventory per warehouse | Adding payment providers / regions in code |
-| Orders: fulfil, refund, status | DB, hosting, domain DNS |
-| View customers (per channel) | Feature-flag / theme changes via config PR |
+| Inventory | Adding payment providers / regions in code |
+| Orders: fulfil, refund, status | DB (Neon), hosting, domain DNS |
+| View customers | Feature-flag / theme changes via config PR |
 
 ---
 

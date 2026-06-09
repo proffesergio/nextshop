@@ -1,0 +1,34 @@
+{
+  "name": "@nextshop/commerce-core",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "NextShop framework-agnostic commerce logic (cart, search, money) — shared, published.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/proffesergio/nextshop.git",
+    "directory": "packages/commerce-core"
+  },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "files": ["src"],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@nextshop/eslint-config": "workspace:*",
+    "@nextshop/tsconfig": "workspace:*",
+    "eslint": "^9.15.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}

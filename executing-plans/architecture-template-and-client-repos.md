@@ -1,7 +1,7 @@
 # 🏗️ Architecture — Factory template + independent client repos
 
 **Decision (locked):** Maximum client independence.
-- Each client = its **own git repo**, its **own Vercel deploy**, its **own dedicated Medusa backend + database + admin**.
+- Each client = its **own git repo**, its **own Vercel deploy**, its **own dedicated backend (custom, Next + Neon Postgres via @nextshop/db) + admin**.
 - This repo is the **factory / control-plane + template**: it holds the shared packages (published to a
   private registry), the base storefront + backend, docs, and the tooling to spin up client repos.
 - Shared fixes propagate via **published versioned packages** (`pnpm update`), not copy-paste.
@@ -13,13 +13,13 @@ is a control-plane that *generates and versions* many independent storefronts.
 shopforge  (THIS repo — factory + template, published packages)
   packages/config        -> @scope/config        (published)
   packages/ui            -> @scope/ui             (published)
-  packages/commerce-core -> @scope/commerce-core  (published; Medusa shared logic, Phase 1+)
-  apps/storefront        -> base store (template)
-  apps/medusa            -> base dedicated backend (template)
+  packages/commerce-core -> @scope/commerce-core  (published; shared commerce logic, Phase 1+)
+  packages/db            -> backend (repository + Neon/Drizzle + in-memory fallback)
+  apps/storefront        -> base store (template) + API route handlers
   scripts/create-client-repo.ts
         │
-        ├──► repo: tuore        (own repo) ── Vercel ── medusa-tuore (own DB, /app)   🥬
-        └──► repo: freestylebd  (own repo) ── Vercel ── medusa-freestyle (own DB,/app) 🧵
+        ├──► repo: tuore        (own repo) ── Vercel ── Neon DB   🥬
+        └──► repo: freestylebd  (own repo) ── Vercel ── Neon DB   🧵
 ```
 
 ---
@@ -30,10 +30,9 @@ A client repo is a **thin app** that owns its design/strategy and depends on sha
 
 ```
 tuore/                       (independent repo)
-  apps/storefront/           own pages, can diverge freely
-  apps/medusa/               own dedicated backend + migrations + seed
+  apps/storefront/           own pages, can diverge freely; API routes talk to @scope/db
   store.config.ts            this client's single config (no registry, no STORE_CLIENT)
-  package.json               depends on @scope/ui, @scope/config, @scope/commerce-core (^x.y.z)
+  package.json               depends on @scope/ui, @scope/config, @scope/db, @scope/commerce-core (^x.y.z)
   .npmrc                     points @scope to the private registry (read token)
 ```
 
@@ -85,13 +84,14 @@ gh repo create <client> --private --template <org>/shopforge-client-template
 **B. Scripted:** `pnpm create:client <name>` → uses `degit`/`gh` to materialize the template, sets the
 client `id`/brand/domain, and opens the repo.
 
-Each new client also gets its **own Medusa backend**:
+Each new client gets its **own Neon database**:
 ```bash
 # in the client repo
-cp apps/medusa/.env.template apps/medusa/.env   # set DATABASE_URL to the client's own Postgres
-pnpm --filter medusa dev                        # admin at /app
-pnpm --filter medusa seed
-# storefront env: NEXT_PUBLIC_MEDUSA_BACKEND_URL = this client's backend
+# 1. Create a free Neon project at neon.tech → copy the connection string
+# 2. Add DATABASE_URL to the storefront env (Vercel env vars or .env.local)
+pnpm --filter @nextshop/db db:push    # create tables in this client's Neon DB
+# The storefront's API routes (POST /api/orders, etc.) talk directly to @nextshop/db
+# Owner admin (/admin inside the Next app, Auth.js over @nextshop/db) — planned
 ```
 
 ---
@@ -101,13 +101,13 @@ pnpm --filter medusa seed
 - [ ] Lock the repo name / GitHub org (sets the package scope).
 - [ ] Rename packages `@nextshop/*` → `@<scope>/*`; add `publishConfig` + build step (`tsup`/`tsc`) + `files`.
 - [ ] Add **Changesets** + a publish GitHub Action (GitHub Packages).
-- [ ] Add `packages/commerce-core` for shared Medusa logic/extensions (grows in Phase 1+).
+- [ ] Add `packages/commerce-core` for shared commerce logic/extensions (cart/checkout/…, grows in Phase 1+).
 - [ ] Reframe the multi-client `clients/` registry as **template demo data**; the real client unit is a
       single `store.config.ts` in a client repo.
 - [ ] Build the **client template** (`shopforge-client-template`) + `create-client-repo` tooling.
 - [ ] Update `README.md` / `docs/PLAYBOOK.md` to the factory model (replace "one codebase, many stores"
       with "template + independent client repos").
-- [ ] Document the **dedicated-backend-per-client** setup (own DB, own env, own admin users).
+- [ ] Document the **dedicated-backend-per-client** setup (own Neon DB, own `DATABASE_URL`, owner admin — custom, planned).
 
 ---
 
@@ -115,5 +115,5 @@ pnpm --filter medusa seed
 
 This model maximizes isolation: a change to one client's repo can **never** break another, and each
 owner's admin/data is fully separate. The cost — propagating improvements — is handled by the published
-packages (`pnpm update`). The residual cost is **N backends + N databases to operate**; budget for that
-infra, or move very small clients to a shared backend later if needed (a per-client choice).
+packages (`pnpm update`). The residual cost is **N Neon databases to operate** (Neon free tier covers
+small clients); move very small clients to a shared DB later if needed (a per-client choice).

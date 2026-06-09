@@ -1,6 +1,15 @@
 {
   "name": "@nextshop/tsconfig",
   "version": "0.1.0",
-  "private": true,
-  "files": ["base.json", "nextjs.json", "react-library.json"]
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/proffesergio/nextshop.git",
+    "directory": "packages/tsconfig"
+  },
+  "files": ["base.json", "nextjs.json", "react-library.json"],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  }
 }

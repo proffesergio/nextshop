@@ -61,7 +61,7 @@ const domainsSchema = z.object({
 export type Domains = z.infer<typeof domainsSchema>;
 
 const regionSchema = z.object({
-  /** Region code matching the Medusa region, e.g. "eu". */
+  /** Region code, e.g. "eu". */
   code: z.string().min(1),
   name: z.string().min(1),
   /** ISO 3166-1 alpha-2 country codes covered by this region. */

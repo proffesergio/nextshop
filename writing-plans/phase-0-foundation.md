@@ -2,7 +2,8 @@
 
 ## Context
 Stand up the config-driven multi-storefront skeleton so Phases 1–5 are pure feature work.
-Engine = Medusa; storefront = Next.js PWA; reuse = one codebase, many stores via `STORE_CLIENT`.
+Engine = Medusa (backend later replaced by custom Neon backend — see `writing-plans/phase-backend-custom.md`);
+storefront = Next.js PWA; reuse = one codebase, many stores via `STORE_CLIENT`.
 
 ## Goal
 A coherent empty skeleton: monorepo, theming, design system, storefront shell, clients +
@@ -16,7 +17,7 @@ A coherent empty skeleton: monorepo, theming, design system, storefront shell, c
 - [x] `clients/_example` (base clone), `clients/finnish-grocer`, `clients/freestylebd`, `clients/index.ts`
 - [x] `scripts/new-client.ts` — `pnpm new:client <company>` (TDD, 5/5)
 - [x] Docs: `README.md`, `docs/PLAYBOOK.md`, `ROADMAP.md`, `CONTEXT.md`, `writing-plans/`
-- [ ] `apps/medusa` — engine config + seed (sample products incl. a Bangladesh-sourced item)
+- [x] `packages/db` — custom backend (`@nextshop/db`) with Neon/Drizzle + in-memory fallback (replaces `apps/medusa`)
 - [ ] CI (GitHub Actions): lint → typecheck → test → build → audit; Playwright smoke
 - [ ] Verification pass
 
@@ -30,4 +31,4 @@ A coherent empty skeleton: monorepo, theming, design system, storefront shell, c
    currency, copy) with no code change.
 3. `pnpm new:client demo-co` produces a registered, runnable client.
 4. `pnpm test` green (config + scripts + storefront); Playwright smoke passes.
-5. Medusa admin reachable; seed products load.
+5. `@nextshop/db` connects to Neon (when `DATABASE_URL` is set) or returns in-memory demo products.

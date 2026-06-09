@@ -1,9 +1,19 @@
 {
   "name": "@nextshop/eslint-config",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/proffesergio/nextshop.git",
+    "directory": "packages/eslint-config"
+  },
   "main": "index.js",
+  "files": ["index.js"],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
   "dependencies": {
     "@eslint/js": "^9.15.0",
     "eslint-config-prettier": "^9.1.0",

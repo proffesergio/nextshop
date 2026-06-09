@@ -1,7 +1,16 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@nextshop/ui", "@nextshop/config", "@nextshop/clients"],
+  // Per-instance build dir lets several storefronts (different STORE_CLIENT) run
+  // concurrently without clobbering each other's .next cache. See testservers/.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
+  transpilePackages: [
+    "@nextshop/ui",
+    "@nextshop/config",
+    "@nextshop/clients",
+    "@nextshop/commerce-core",
+    "@nextshop/db",
+  ],
   env: {
     STORE_CLIENT: process.env.STORE_CLIENT,
   },

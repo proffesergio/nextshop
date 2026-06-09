@@ -34,3 +34,8 @@ pnpm-debug.log*
 test-results/
 playwright-report/
 playwright/.cache/
+
+# testservers per-instance build dirs + runtime
+.next-*/
+testservers/logs/
+testservers/.pids

@@ -50,22 +50,28 @@ export function ProductCard({
           <Badge tone="accent">{product.tag}</Badge>
         </div>
       )}
-      <div
-        aria-hidden
-        style={{
-          fontSize: "4.5rem",
-          textAlign: "center",
-          padding: "var(--space-5) 0 var(--space-4)",
-          filter: "drop-shadow(0 10px 18px rgba(20,39,27,0.18))",
-        }}
+      <a
+        href={`/products/${product.id}`}
+        style={{ textDecoration: "none", color: "inherit" }}
+        tabIndex={0}
       >
-        {isUrl ? (
-          <img src={product.thumbnail} alt="" style={{ width: 96, height: 96, objectFit: "contain" }} />
-        ) : (
-          (product.thumbnail ?? "🛒")
-        )}
-      </div>
-      <h3 style={{ fontSize: "1.15rem", margin: "0 0 4px" }}>{product.title}</h3>
+        <div
+          aria-hidden
+          style={{
+            fontSize: "4.5rem",
+            textAlign: "center",
+            padding: "var(--space-5) 0 var(--space-4)",
+            filter: "drop-shadow(0 10px 18px rgba(20,39,27,0.18))",
+          }}
+        >
+          {isUrl ? (
+            <img src={product.thumbnail} alt="" style={{ width: 96, height: 96, objectFit: "contain" }} />
+          ) : (
+            (product.thumbnail ?? "🛒")
+          )}
+        </div>
+        <h3 style={{ fontSize: "1.15rem", margin: "0 0 4px" }}>{product.title}</h3>
+      </a>
       {product.origin && (
         <p style={{ margin: 0, fontSize: "0.85rem", color: "color-mix(in srgb, var(--color-foreground) 60%, transparent)" }}>
           {product.origin}

@@ -2,7 +2,7 @@
   "name": "nextshop",
   "version": "0.1.0",
   "private": true,
-  "description": "Config-driven, multi-client grocery eCommerce PWA template (Medusa + Next.js)",
+  "description": "Config-driven, multi-client eCommerce PWA template (Next.js + custom Neon backend)",
   "packageManager": "pnpm@9.12.0",
   "engines": {
     "node": ">=20"
@@ -15,9 +15,13 @@
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e",
     "new:client": "tsx scripts/new-client.ts",
-    "audit": "pnpm audit --prod"
+    "audit": "pnpm audit --prod",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.27.10",
     "prettier": "^3.3.3",
     "tsx": "^4.19.2",
     "turbo": "^2.3.3",

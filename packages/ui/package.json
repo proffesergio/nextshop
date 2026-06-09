@@ -1,19 +1,32 @@
 {
   "name": "@nextshop/ui",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
+  "description": "NextShop 'Fresh Market Vibrancy' design system (shared, published). Consume via Next transpilePackages.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/proffesergio/nextshop.git",
+    "directory": "packages/ui"
+  },
+  "sideEffects": ["*.css"],
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
     "./styles.css": "./src/styles/theme.css"
   },
+  "files": ["src"],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@nextshop/commerce-core": "workspace:*",
     "@nextshop/config": "workspace:*",
     "framer-motion": "^11.11.17"
   },

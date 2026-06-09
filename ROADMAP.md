@@ -6,7 +6,7 @@ spec → plan (`writing-plans/`) → build cycle, so any session can resume by r
 | Phase | Scope | Status |
 |-------|-------|--------|
 | **0 — Foundation** | Monorepo, config-driven theming, design system, storefront shell, clients + `new:client`, docs, CI | 🟡 In progress |
-| **1 — Storefront UX/UI** | Search + autocomplete, category nav, cart, saved shopping lists, checkout w/ delivery & pickup slots | ⬜ Not started |
+| **1 — Storefront UX/UI** | Search + **autocomplete**, category nav, sort, cart drawer, saved shopping lists, checkout w/ delivery & pickup slots, **product detail page** ✅ | ✅ Done |
 | **2 — Order tracking** | Real-time status (packing/shipped) + GPS map | ⬜ Not started |
 | **3 — Payments** | Stripe cards, MobilePay, Klarna (FI) · bKash, Nagad, COD (BD) — region-driven via config | ⬜ Not started |
 | **4 — Compliance / logistics** | Multi-warehouse routing (FI + BD supplier), GSP/preferential-origin duties, PEPPOL e-invoicing, phytosanitary docs | ⬜ Not started |
@@ -22,7 +22,7 @@ spec → plan (`writing-plans/`) → build cycle, so any session can resume by r
 - [x] `scripts/new-client.ts` — `pnpm new:client <company>` (TDD, 5/5 tests)
 - [x] Crash-recovery: `CONTEXT.md`, dual-graph memory, decorated `README.md`
 - [x] `docs/PLAYBOOK.md` + `writing-plans/` phase plans
-- [ ] `apps/medusa` — engine + seed (incl. Bangladesh-sourced item)
+- [x] custom backend (`@nextshop/db`) + Neon (replaces Medusa)
 - [ ] CI (GitHub Actions) + storefront RTL test + Playwright smoke
 - [ ] Full verification (build, theme switch, `pnpm new:client demo-co`)
 

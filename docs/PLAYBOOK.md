@@ -1,7 +1,15 @@
-# 📖 Playbook — Storefront Factory
+# 📖 Playbook — NextShop
 
 The operator + developer handbook. Everything you need to **launch, brand, and run** a
 storefront for a new company, plus how to extend the platform.
+
+> **Architecture model (canonical):** NextShop is a **factory** — each client is its **own repo**
+> with its **own dedicated backend + DB** (custom: Next.js API routes over **Neon Postgres** via
+> `@nextshop/db`), consuming the shared `@nextshop/*` packages from npm (`pnpm update` for fixes). See
+> [`../executing-plans/architecture-template-and-client-repos.md`](../executing-plans/architecture-template-and-client-repos.md).
+> In §2 below, `pnpm new:client` is the **in-repo/template** convenience (adds a demo client to this
+> repo); for a real production client you instead **create its own repo** (`gh repo create <client>
+> --template <org>/nextshop-client-template`) and give it a dedicated backend (§5, §7).
 
 - [1. Phases & how we build](#1-phases--how-we-build)
 - [2. New-client onboarding](#2-new-client-onboarding)
@@ -50,7 +58,7 @@ and primary domain, and **registers the store** in `clients/index.ts`. Then:
 | 6 | Toggle **feature flags** | same file → `featureFlags` |
 | 7 | Set **domain(s)** | same file → `domains` (see §3) |
 | 8 | Set `STORE_CLIENT=<company>` + secrets | deployment env (see §7) |
-| 9 | Deploy | Vercel + Medusa (see §7) |
+| 9 | Deploy | Vercel + Neon DB (see §7) |
 
 The config is validated by zod at build time, so a malformed store **fails fast** instead of
 breaking in production.
@@ -80,13 +88,10 @@ domains: {
 3. At your registrar, point the domain to Vercel (CNAME `cname.vercel-dns.com`, or A record per
    Vercel's instructions).
 
-**Medusa backend (CORS + region):**
-- Add each storefront origin to `STORE_CORS` (and `ADMIN_CORS` for the admin domain).
-- Ensure a Medusa **region** exists matching the client's `regions[].code` / currency.
-
-**Shared vs dedicated backend:** by default many storefronts share **one** Medusa backend using
-separate **regions / sales channels**. A high-volume client can get a dedicated backend — just
-point its `NEXT_PUBLIC_MEDUSA_BACKEND_URL` at the other instance.
+**Backend (custom, embedded):** there is no separate backend service to point at — the storefront's
+own API route handlers talk directly to **`@nextshop/db`** (a repository over **Neon Postgres**). Each
+client gets its **own Neon database**; set that client's **`DATABASE_URL`** in its deployment env. With
+no `DATABASE_URL` the store runs on in-memory demo data, so previews work with zero infra.
 
 ---
 
@@ -118,14 +123,16 @@ template. Keep gradients vibrant **but soothing** (the "Fresh Market Vibrancy" l
 
 ## 5. Admin instructions (no code)
 
-Day-to-day business runs from the **Medusa admin panel** (`apps/medusa`, default
-`http://localhost:9000/app` in dev):
+Day-to-day business will run from the **owner admin** — a custom panel at **`/admin`** inside the Next
+app (Auth.js auth over `@nextshop/db`). **Status: planned** (next increment). It will cover:
 
 - **Products & categories** — create items, images, variants (e.g. clothing sizes), prices.
-- **Inventory** — stock per **warehouse / stock location** (e.g. Helsinki cold store, Dhaka supplier).
-- **Orders** — view, fulfil, refund; update status.
+- **Inventory** — stock levels per product.
+- **Orders** — view, fulfil, refund; update status (drives Phase 2 real-time tracking).
 - **Regions & currencies** — must match the client's `regions` in `store.config.ts`.
 - **Payments & shipping** — enable providers; they should line up with `payments.enabledProviders`.
+
+Until the admin ships, manage data directly in the database (Neon's SQL console) or via `@nextshop/db`.
 
 > Operators never touch code. Developers wire a capability once; operators flip it on in admin.
 
@@ -157,14 +164,11 @@ implement behind the relevant `featureFlags`/`payments` keys, and document it he
 
 | Component | Recommended host | Notes |
 |-----------|------------------|-------|
-| Storefront (`apps/storefront`) | **Vercel** | One project per client; set `STORE_CLIENT` + `NEXT_PUBLIC_MEDUSA_BACKEND_URL`. |
-| Commerce engine (`apps/medusa`) | **Railway / Render** | Needs PostgreSQL (+ Redis for events). |
-| Database | Managed Postgres | One per backend instance. |
+| Storefront + backend (`apps/storefront`) | **Vercel** | One project per client; the backend is embedded (API route handlers). Set `STORE_CLIENT` + `DATABASE_URL`. |
+| Database | **Neon** (serverless Postgres) | One per client; free tier. `pnpm --filter @nextshop/db db:push` creates tables. |
 
-**Required env (storefront):** `STORE_CLIENT`, `NEXT_PUBLIC_MEDUSA_BACKEND_URL`,
-`NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY`.
-**Required env (Medusa):** `DATABASE_URL`, `JWT_SECRET`, `COOKIE_SECRET`, `STORE_CORS`,
-`ADMIN_CORS`, plus payment provider keys.
+**Required env:** `STORE_CLIENT` (which client config to serve) and `DATABASE_URL` (the client's Neon
+connection string). With no `DATABASE_URL` the store serves in-memory demo data (handy for previews).
 
 CI (GitHub Actions) runs lint → typecheck → unit tests → build → `pnpm audit` on every push, and
 a Playwright smoke test. Merge to your main branch triggers deploy.

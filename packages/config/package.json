@@ -1,12 +1,23 @@
 {
   "name": "@nextshop/config",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
+  "description": "NextShop StoreConfig schema + loader + brand tokens (shared, published).",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/proffesergio/nextshop.git",
+    "directory": "packages/config"
+  },
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts"
+  },
+  "files": ["src"],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
   },
   "scripts": {
     "lint": "eslint .",
