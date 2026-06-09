@@ -1,5 +1,5 @@
 import { orderTotal, type FulfillmentMethod } from "./checkout.js";
-import type { Cart, Money, OrderDraft } from "./types.js";
+import type { Cart, Money, OrderDraft, OrderStatus } from "./types.js";
 
 /**
  * Build an order draft from a cart + checkout details. Snapshots each line so the
@@ -29,4 +29,23 @@ export function buildOrderDraft(
     customer: { name: opts.customerName, ...(opts.address ? { address: opts.address } : {}) },
     status: "pending",
   };
+}
+
+/** Allowed status moves. The owner admin and Phase 2 tracking share this map. */
+const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  pending: ["packing", "cancelled"],
+  packing: ["shipped", "cancelled"],
+  shipped: ["delivered"],
+  delivered: [],
+  cancelled: [],
+};
+
+/** Statuses an order may move to next from `status`. */
+export function nextOrderStatuses(status: OrderStatus): OrderStatus[] {
+  return ORDER_TRANSITIONS[status] ?? [];
+}
+
+/** Whether moving an order from `from` to `to` is a legal transition. */
+export function canTransitionOrder(from: OrderStatus, to: OrderStatus): boolean {
+  return nextOrderStatuses(from).includes(to);
 }
