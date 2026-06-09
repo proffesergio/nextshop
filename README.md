@@ -84,7 +84,8 @@ Full run guide (incl. the backend/DB): [`testservers/README.md`](testservers/REA
 4. **Deploy** — storefront on Vercel (`STORE_CLIENT`, `DATABASE_URL`), add the domain.
 5. **Stay current** — `pnpm update @nextshop/ui @nextshop/config` pulls shared fixes/features.
 
-Step-by-step (domains, admin, payments): [`docs/PLAYBOOK.md`](docs/PLAYBOOK.md) ·
+Run locally / deploy free (Vercel + Neon): [`docs/DEPLOY.md`](docs/DEPLOY.md) ·
+step-by-step (domains, admin, payments): [`docs/PLAYBOOK.md`](docs/PLAYBOOK.md) ·
 git & isolation strategy: [`executing-plans/git-and-admin-playbook.md`](executing-plans/git-and-admin-playbook.md).
 
 ---
