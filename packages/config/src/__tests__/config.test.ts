@@ -45,6 +45,24 @@ describe("defineConfig", () => {
     expect(defineConfig(valid).featureFlags.ownerAdmin).toBe(true);
   });
 
+  it("defaults marketing to empty lists and accepts custom content", () => {
+    const cfg = defineConfig(valid);
+    expect(cfg.marketing.usps).toEqual([]);
+    expect(cfg.marketing.promos).toEqual([]);
+    expect(cfg.marketing.announcement).toBeUndefined();
+
+    const rich = defineConfig({
+      ...valid,
+      marketing: {
+        announcement: "Free delivery over 50 €",
+        usps: [{ icon: "🚚", title: "Fast", text: "Same-day slots" }],
+        promos: [{ icon: "🥬", title: "Fresh week", text: "−20% greens", cta: "Shop deals", href: "#shop" }],
+      },
+    });
+    expect(rich.marketing.usps).toHaveLength(1);
+    expect(rich.marketing.promos[0]?.cta).toBe("Shop deals");
+  });
+
   it("rejects a non-kebab-case id", () => {
     expect(() => defineConfig({ ...valid, id: "Test_Co" })).toThrow();
   });

@@ -93,6 +93,29 @@ const featureFlagsSchema = z.object({
 });
 export type FeatureFlags = z.infer<typeof featureFlagsSchema>;
 
+/** Client-driven storefront messaging: announcement bar, USP strip, promo banners. */
+const marketingSchema = z
+  .object({
+    /** Slim bar above the header, e.g. "Free delivery over 50 €". */
+    announcement: z.string().optional(),
+    /** Trust/USP strip items shown under the hero. */
+    usps: z.array(z.object({ icon: z.string(), title: z.string(), text: z.string() })).default([]),
+    /** Promo banner tiles, e.g. seasonal campaigns. */
+    promos: z
+      .array(
+        z.object({
+          icon: z.string().optional(),
+          title: z.string(),
+          text: z.string(),
+          cta: z.string(),
+          href: z.string(),
+        }),
+      )
+      .default([]),
+  })
+  .default({});
+export type Marketing = z.infer<typeof marketingSchema>;
+
 export const storeConfigSchema = z.object({
   /** Unique client slug; matches the clients/<id> directory and STORE_CLIENT env. */
   id: z.string().regex(/^[a-z0-9-]+$/, "id must be lowercase kebab-case"),
@@ -115,6 +138,7 @@ export const storeConfigSchema = z.object({
   }),
   warehouses: z.array(warehouseSchema).min(1),
   featureFlags: featureFlagsSchema.default({}),
+  marketing: marketingSchema,
 });
 
 export type StoreConfig = z.infer<typeof storeConfigSchema>;
