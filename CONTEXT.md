@@ -43,7 +43,18 @@ orders page with status mover; guarded `/api/admin/products[,(id)]` + `/api/admi
 120 tests green (commerce-core 56, storefront 43, db 6, config 10, scripts 5); typecheck 7/7,
 lint 6/6, both clients build (all `/admin*` routes ƒ). Changeset `.changeset/owner-admin.md` added.
 
+**Phase 2 COMPLETE (green):** live tracking at `/orders/[id]` (plan:
+`writing-plans/phase-2-order-tracking.md`). commerce-core `tracking.ts`
+(orderTimeline/trackingProgress/isValidCoordinates); `Order.courier` + db courier lat/lng cols +
+`updateOrderLocation`; public `GET /api/orders/[id]`; owner `PATCH /api/admin/orders/[id]/location`;
+ui `OrderTimeline` (animated gradient spine + pulsing live halo); `OrderTracking` polls every 10s,
+OSM iframe map behind `featureFlags.gpsTracking` (on for finnish-grocer, off freestylebd);
+checkout now links "Track your order"; admin orders row gets Set GPS for shipped orders.
+139 tests green (commerce-core 61, storefront 56, db 7, config 10, scripts 5); typecheck 7/7,
+lint 6/6, both builds (`/orders/[id]` present). `docs/DEPLOY.md` = local run + Vercel/Neon guide.
+
 **Next:**
-- Phase 2: real-time order tracking (status timeline + GPS) — transitions + `updateOrderStatus` ready.
-- Phase 3: payments (Stripe/MobilePay/Klarna · bKash/Nagad/COD via config).
+- Phase 3: payments (Stripe/MobilePay/Klarna · bKash/Nagad/COD via config + featureFlags).
 - Optional: go live with a real DB (Neon `DATABASE_URL` + `pnpm --filter @nextshop/db db:push`).
+- Suggested: email/SMS order notifications, courier mobile page (auto GPS via geolocation API),
+  customer order history (localStorage), admin sales charts, i18n (Phase 5).
