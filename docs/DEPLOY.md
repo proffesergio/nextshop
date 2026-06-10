@@ -49,6 +49,44 @@ fallback is disabled when `NODE_ENV=production` has no `ADMIN_EMAIL`/`ADMIN_PASS
 
 ---
 
+## 1.5 · Showcase an MVP from this machine (2 minutes)
+
+Live-demo a client storefront straight off your own server — no hosting account at all:
+
+```bash
+cd apps/storefront
+STORE_CLIENT=finnish-grocer pnpm build
+STORE_CLIENT=finnish-grocer NODE_ENV=production \
+  AUTH_SECRET=$(openssl rand -base64 32) \
+  ADMIN_EMAIL=owner@tuore.demo ADMIN_PASSWORD=tuore-demo-2026 \
+  pnpm start &                          # serves on :3000
+
+~/.local/bin/cloudflared tunnel --url http://localhost:3000 --no-autoupdate
+# → prints a free public https://….trycloudflare.com URL — send it to the client
+```
+
+(`cloudflared` is a single static binary: `curl -sL -o ~/.local/bin/cloudflared
+https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+&& chmod +x ~/.local/bin/cloudflared`.)
+
+**Demo walkthrough for the client call:**
+1. Home — branded storefront, search with autocomplete, category tabs, sort.
+2. Open a product → add to cart → cart drawer → saved shopping lists.
+3. Checkout → delivery vs pickup, time slots → place order → **Track your order**.
+4. In a second tab: `/admin` (sign in with the `ADMIN_EMAIL`/`ADMIN_PASSWORD` above) →
+   Orders → advance the order pending → packing → shipped, click **Set GPS**
+   (e.g. `60.17`, `24.94`).
+5. Back on the tracking tab: the timeline grows and the courier map appears —
+   no refresh needed (10 s polling).
+6. Re-skin pitch: restart with `STORE_CLIENT=freestylebd` — same code, entirely
+   different brand.
+
+**Caveats (demo mode):** without `DATABASE_URL` data is in-memory and resets on
+restart; the trycloudflare URL changes each run and exists only while the tunnel
+process runs. For an always-on MVP, use the Vercel section below.
+
+---
+
 ## 2 · Deploy to Vercel (free Hobby plan)
 
 One Vercel **project per client** — same repo, different `STORE_CLIENT`.
