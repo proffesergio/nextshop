@@ -53,6 +53,16 @@ checkout now links "Track your order"; admin orders row gets Set GPS for shipped
 139 tests green (commerce-core 61, storefront 56, db 7, config 10, scripts 5); typecheck 7/7,
 lint 6/6, both builds (`/orders/[id]` present). `docs/DEPLOY.md` = local run + Vercel/Neon guide.
 
+**Modern shop UI COMPLETE (green):** Amazon-style home (plan: `writing-plans/phase-ui-modern-shop.md`).
+commerce-core `merchandising.ts` (discountPercent/isOnSale/dealProducts/topRated/relatedProducts;
+Product gains compareAtAmount/rating/reviewCount); config `marketing` (announcement/usps/promos,
+client-driven); ui: AnnouncementBar, UspStrip, CategoryShowcase, ProductShelf, PromoBanner,
+NewsletterSignup, RatingStars, richer ProductCard (deal badge, stars, compare-at, stock urgency,
+sold-out), multi-column Footer. StoreHome: announcement → hero → USPs → category tiles → Deals +
+Top-rated shelves → catalog → promos → newsletter. ProductDetail: rating/discount/stock + related
+shelf. 151 tests green; typecheck/lint/builds green. **Live MVP:** local prod server :3000 +
+cloudflared tunnel (recipe `docs/DEPLOY.md` §1.5); admin demo owner@tuore.demo / tuore-demo-2026.
+
 **Next:**
 - Phase 3: payments (Stripe/MobilePay/Klarna · bKash/Nagad/COD via config + featureFlags).
 - Optional: go live with a real DB (Neon `DATABASE_URL` + `pnpm --filter @nextshop/db db:push`).
