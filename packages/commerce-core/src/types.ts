@@ -60,6 +60,13 @@ export interface OrderItem {
   qty: number;
 }
 
+/** How (and whether) an order has been paid. */
+export interface OrderPayment {
+  /** Provider id from the payments catalog, e.g. "stripe", "bkash", "cod". */
+  method: string;
+  status: "pending" | "paid";
+}
+
 /** An order before it is persisted (no id / timestamp yet). */
 export interface OrderDraft {
   items: OrderItem[];
@@ -67,6 +74,7 @@ export interface OrderDraft {
   fulfillment: { method: "delivery" | "pickup"; slot: string };
   customer: { name: string; address?: string };
   status: OrderStatus;
+  payment?: OrderPayment;
 }
 
 /** Live courier position (Phase 2 GPS tracking). */

@@ -1,4 +1,5 @@
 import { orderTotal, type FulfillmentMethod } from "./checkout.js";
+import { paymentForMethod } from "./payments.js";
 import type { Cart, Money, OrderDraft, OrderStatus } from "./types.js";
 
 /**
@@ -14,6 +15,8 @@ export function buildOrderDraft(
     customerName: string;
     address?: string;
     deliveryFee: Money;
+    /** Payment provider id; when set the draft carries its initial payment record. */
+    paymentMethod?: string;
   },
 ): OrderDraft {
   return {
@@ -28,6 +31,7 @@ export function buildOrderDraft(
     fulfillment: { method: opts.method, slot: opts.slot },
     customer: { name: opts.customerName, ...(opts.address ? { address: opts.address } : {}) },
     status: "pending",
+    ...(opts.paymentMethod ? { payment: paymentForMethod(opts.paymentMethod) } : {}),
   };
 }
 
