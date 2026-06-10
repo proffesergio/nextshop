@@ -1,6 +1,7 @@
 import { formatPrice } from "@nextshop/commerce-core";
 import { getStoreRepository } from "@/lib/products";
 import { AdminOrderStatus } from "@/components/AdminOrderStatus";
+import { AdminCourierLocation } from "@/components/AdminCourierLocation";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,11 @@ export default async function AdminOrdersPage() {
               <td>{formatPrice(o.total)}</td>
               <td>
                 <AdminOrderStatus orderId={o.id} status={o.status} />
+                {o.status === "shipped" && (
+                  <div style={{ marginTop: 6 }}>
+                    <AdminCourierLocation orderId={o.id} current={o.courier} />
+                  </div>
+                )}
               </td>
             </tr>
           ))}
