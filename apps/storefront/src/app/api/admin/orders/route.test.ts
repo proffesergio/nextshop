@@ -6,6 +6,7 @@ vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 
 import { auth } from "@/lib/auth";
 import { PATCH } from "./[id]/route";
+import { PATCH as PATCH_LOCATION } from "./[id]/location/route";
 
 const authMock = auth as unknown as ReturnType<typeof vi.fn>;
 
@@ -47,5 +48,34 @@ describe("PATCH /api/admin/orders/[id]", () => {
     expect((await patch("nope", "packing")).status).toBe(404);
     const order = await getRepository().createOrder(draft);
     expect((await patch(order.id, "teleported")).status).toBe(400);
+  });
+});
+
+describe("PATCH /api/admin/orders/[id]/location", () => {
+  const patchLoc = (id: string, body: unknown) =>
+    PATCH_LOCATION(new Request("http://test", { method: "PATCH", body: JSON.stringify(body) }), { params: { id } });
+
+  it("rejects unauthenticated requests", async () => {
+    authMock.mockResolvedValue(null);
+    expect((await patchLoc("any", { lat: 60, lng: 24 })).status).toBe(401);
+  });
+
+  it("rejects invalid coordinates", async () => {
+    const order = await getRepository().createOrder(draft);
+    expect((await patchLoc(order.id, { lat: 91, lng: 24 })).status).toBe(400);
+    expect((await patchLoc(order.id, { lat: "60", lng: 24 })).status).toBe(400);
+  });
+
+  it("sets the courier location on an existing order", async () => {
+    const order = await getRepository().createOrder(draft);
+    const res = await patchLoc(order.id, { lat: 60.17, lng: 24.94 });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.courier.lat).toBe(60.17);
+    expect(body.courier.updatedAt).toBeTruthy();
+  });
+
+  it("404s for unknown orders", async () => {
+    expect((await patchLoc("nope", { lat: 60, lng: 24 })).status).toBe(404);
   });
 });
