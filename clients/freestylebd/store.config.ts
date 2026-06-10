@@ -44,4 +44,17 @@ export default defineConfig({
     { id: "bd-dhaka", name: "Dhaka Fulfilment", countryCode: "BD", type: "local" },
   ],
   featureFlags: { pickupSlots: false, shoppingLists: true, gpsTracking: false },
+  marketing: {
+    announcement: "🧵 Eid collection drop — extra 10% off with code EID10",
+    usps: [
+      { icon: "🧵", title: "Export quality", text: "Same factories, factory prices" },
+      { icon: "🚚", title: "Nationwide delivery", text: "Dhaka in 24h, all BD in 3 days" },
+      { icon: "💸", title: "Cash on delivery", text: "Pay when it arrives" },
+      { icon: "↩️", title: "7-day returns", text: "Wrong size? Easy exchange" },
+    ],
+    promos: [
+      { icon: "🧥", title: "Winter drop", text: "Denim and knits up to 30% off.", cta: "Shop the drop", href: "#shop" },
+      { icon: "👟", title: "Street essentials", text: "Sneakers, tees and chinos for every day.", cta: "Browse", href: "#shop" },
+    ],
+  },
 });

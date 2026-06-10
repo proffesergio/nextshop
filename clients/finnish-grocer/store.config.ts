@@ -41,4 +41,17 @@ export default defineConfig({
     { id: "bd-supplier", name: "Dhaka Supplier", countryCode: "BD", type: "supplier" },
   ],
   featureFlags: { pickupSlots: true, shoppingLists: true, gpsTracking: true },
+  marketing: {
+    announcement: "🚚 Free delivery on orders over 50 € — today only",
+    usps: [
+      { icon: "🥬", title: "Farm fresh", text: "Picked and packed the same morning" },
+      { icon: "🚚", title: "Same-day slots", text: "Delivery or pickup, you choose the hour" },
+      { icon: "📍", title: "Live tracking", text: "Follow your courier on the map" },
+      { icon: "🔒", title: "Secure checkout", text: "Cards, MobilePay & Klarna" },
+    ],
+    promos: [
+      { icon: "🥗", title: "Green week", text: "Up to 25% off fresh produce while it lasts.", cta: "Shop the deals", href: "#shop" },
+      { icon: "🇧🇩", title: "Taste of Bangladesh", text: "Alphonso mango and more, flown in fresh.", cta: "Explore", href: "#shop" },
+    ],
+  },
 });
