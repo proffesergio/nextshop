@@ -13,4 +13,5 @@ export { CartDrawer } from "./components/CartDrawer.js";
 export { ListsDrawer } from "./components/ListsDrawer.js";
 export { FulfillmentToggle } from "./components/FulfillmentToggle.js";
 export { SlotPicker } from "./components/SlotPicker.js";
+export { OrderTimeline } from "./components/OrderTimeline.js";
 export * from "./motion.js";
