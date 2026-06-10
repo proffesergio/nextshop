@@ -63,6 +63,15 @@ describe("InMemoryRepository — orders", () => {
     expect(await repo.updateOrderStatus("missing", "shipped")).toBeNull();
   });
 
+  it("persists the payment record and marks pay-later orders paid", async () => {
+    const repo = new InMemoryRepository();
+    const order = await repo.createOrder({ ...draft, payment: { method: "manual", status: "pending" } });
+    expect((await repo.getOrder(order.id))?.payment).toEqual({ method: "manual", status: "pending" });
+    const paid = await repo.updateOrderPayment(order.id, "paid");
+    expect(paid?.payment).toEqual({ method: "manual", status: "paid" });
+    expect(await repo.updateOrderPayment("missing", "paid")).toBeNull();
+  });
+
   it("stores and returns the courier location", async () => {
     const repo = new InMemoryRepository();
     const order = await repo.createOrder(draft);

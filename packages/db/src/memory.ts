@@ -60,6 +60,14 @@ export class InMemoryRepository implements CommerceRepository {
     return updated;
   }
 
+  async updateOrderPayment(id: string, status: "pending" | "paid"): Promise<Order | null> {
+    const existing = this.orders.get(id);
+    if (!existing?.payment) return existing ? existing : null;
+    const updated: Order = { ...existing, payment: { ...existing.payment, status } };
+    this.orders.set(id, updated);
+    return updated;
+  }
+
   async updateOrderLocation(id: string, loc: { lat: number; lng: number }): Promise<Order | null> {
     const existing = this.orders.get(id);
     if (!existing) return null;

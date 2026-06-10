@@ -26,6 +26,8 @@ export const orders = pgTable("orders", {
   customerName: text("customer_name").notNull(),
   customerAddress: text("customer_address"),
   items: jsonb("items").$type<OrderItem[]>().notNull(),
+  paymentMethod: text("payment_method"),
+  paymentStatus: text("payment_status"),
   courierLat: doublePrecision("courier_lat"),
   courierLng: doublePrecision("courier_lng"),
   courierUpdatedAt: timestamp("courier_updated_at", { withTimezone: true }),

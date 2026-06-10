@@ -32,6 +32,9 @@ function rowToOrder(r: OrderRow): Order {
     fulfillment: { method: r.method as "delivery" | "pickup", slot: r.slot },
     customer: { name: r.customerName, ...(r.customerAddress ? { address: r.customerAddress } : {}) },
     items: r.items,
+    ...(r.paymentMethod
+      ? { payment: { method: r.paymentMethod, status: (r.paymentStatus === "paid" ? "paid" : "pending") as "pending" | "paid" } }
+      : {}),
     ...(r.courierLat != null && r.courierLng != null
       ? {
           courier: {
@@ -90,6 +93,8 @@ export class NeonRepository implements CommerceRepository {
       customerName: order.customer.name,
       customerAddress: order.customer.address ?? null,
       items: order.items,
+      paymentMethod: order.payment?.method ?? null,
+      paymentStatus: order.payment?.status ?? null,
     });
     return order;
   }
@@ -106,6 +111,11 @@ export class NeonRepository implements CommerceRepository {
 
   async updateOrderStatus(id: string, status: OrderStatus): Promise<Order | null> {
     const [row] = await this.db.update(orders).set({ status }).where(eq(orders.id, id)).returning();
+    return row ? rowToOrder(row) : null;
+  }
+
+  async updateOrderPayment(id: string, status: "pending" | "paid"): Promise<Order | null> {
+    const [row] = await this.db.update(orders).set({ paymentStatus: status }).where(eq(orders.id, id)).returning();
     return row ? rowToOrder(row) : null;
   }
 
