@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { CheckoutForm } from "./CheckoutForm";
 import { registry } from "@nextshop/clients";
 
@@ -37,6 +37,18 @@ describe("CheckoutForm", () => {
     fireEvent.click(screen.getByRole("button", { name: /place order/i }));
     expect(screen.getByText("Order placed!")).toBeInTheDocument();
     expect(screen.getByText(/09:00–10:00/)).toBeInTheDocument();
+  });
+
+  it("links to live tracking once the order is persisted", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ id: "order_1" }) }));
+    render(<CheckoutForm config={config} />);
+    fireEvent.click(screen.getByRole("radio", { name: /store pickup/i }));
+    fireEvent.change(screen.getByLabelText("Your name"), { target: { value: "Aino" } });
+    fireEvent.click(screen.getByRole("button", { name: "10:00–11:00" }));
+    fireEvent.click(screen.getByRole("button", { name: /place order/i }));
+    const link = await screen.findByRole("link", { name: /track your order/i });
+    expect(link).toHaveAttribute("href", "/orders/order_1");
+    vi.unstubAllGlobals();
   });
 
   it("drops the address requirement for store pickup", () => {

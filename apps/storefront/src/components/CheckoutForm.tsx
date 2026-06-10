@@ -29,6 +29,7 @@ export function CheckoutForm({ config }: { config: StoreConfig }) {
   const [address, setAddress] = useState("");
   const [errors, setErrors] = useState<string[]>([]);
   const [placed, setPlaced] = useState(false);
+  const [trackId, setTrackId] = useState<string | null>(null);
 
   const total = orderTotal(cart.cart, { method, deliveryFee });
 
@@ -51,9 +52,16 @@ export function CheckoutForm({ config }: { config: StoreConfig }) {
           method: "POST",
           headers: { "content-type": "application/json" },
           body: JSON.stringify(draft),
-        }).catch(() => {
-          // network failure — no-op
-        });
+        })
+          .then(async (res) => {
+            if (res.ok) {
+              const saved = (await res.json()) as { id?: string };
+              if (saved.id) setTrackId(saved.id);
+            }
+          })
+          .catch(() => {
+            // network failure — no-op
+          });
       } catch {
         // draft build failure — no-op
       }
@@ -72,8 +80,15 @@ export function CheckoutForm({ config }: { config: StoreConfig }) {
             Thanks, {name || "friend"}. Your {method === "delivery" ? "delivery" : "pickup"} is booked for{" "}
             <strong>{slot}</strong>. You’ll get real-time status updates as it’s prepared.
           </p>
+          {trackId && (
+            <a href={`/orders/${trackId}`} style={{ textDecoration: "none", display: "block" }}>
+              <Button variant="primary" style={{ marginTop: "var(--space-4)" }}>
+                Track your order →
+              </Button>
+            </a>
+          )}
           <a href="/" style={{ textDecoration: "none" }}>
-            <Button variant="primary" style={{ marginTop: "var(--space-4)" }}>
+            <Button variant={trackId ? "ghost" : "primary"} style={{ marginTop: "var(--space-4)" }}>
               Back to {config.brand.name}
             </Button>
           </a>
