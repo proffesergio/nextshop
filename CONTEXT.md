@@ -63,8 +63,12 @@ Top-rated shelves → catalog → promos → newsletter. ProductDetail: rating/d
 shelf. 151 tests green; typecheck/lint/builds green. **Live MVP:** local prod server :3000 +
 cloudflared tunnel (recipe `docs/DEPLOY.md` §1.5); admin demo owner@tuore.demo / tuore-demo-2026.
 
-**Next:**
-- Phase 3: payments (Stripe/MobilePay/Klarna · bKash/Nagad/COD via config + featureFlags).
-- Optional: go live with a real DB (Neon `DATABASE_URL` + `pnpm --filter @nextshop/db db:push`).
-- Suggested: email/SMS order notifications, courier mobile page (auto GPS via geolocation API),
-  customer order history (localStorage), admin sales charts, i18n (Phase 5).
+**Next (in order):**
+1. **Awaiting client approval** of the live MVP demo (tunnel URL is ephemeral; relaunch recipe
+   `docs/DEPLOY.md` §1.5; admin demo owner@tuore.demo / tuore-demo-2026).
+2. On approval → **go live**: Vercel project per client + Neon `DATABASE_URL` +
+   `pnpm --filter @nextshop/db db:push` (`docs/DEPLOY.md` §2), then per-client feature requests.
+3. **Phase 3 payments** (next roadmap build): Stripe/MobilePay/Klarna (FI) · bKash/Nagad/COD (BD),
+   via `payments.enabledProviders` + featureFlags. Plans 1/1.5/2/UI all ✅ in `writing-plans/`.
+4. Backlog: order notifications (email/SMS), courier geolocation page, customer order history,
+   admin sales charts, i18n (Phase 5). One-time setup still pending: npm org + NPM_TOKEN secret.
