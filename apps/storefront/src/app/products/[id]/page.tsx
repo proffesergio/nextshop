@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
+import { relatedProducts } from "@nextshop/commerce-core";
 import { getStoreConfig } from "@/lib/store";
-import { getProduct } from "@/lib/products";
+import { getProduct, getProducts } from "@/lib/products";
 import { ProductDetail } from "@/components/ProductDetail";
 
 interface Props {
@@ -12,5 +13,6 @@ export default async function ProductPage({ params }: Props) {
   const config = getStoreConfig();
   const product = await getProduct(config.id, id);
   if (!product) notFound();
-  return <ProductDetail config={config} product={product} />;
+  const related = relatedProducts(product, await getProducts(config.id));
+  return <ProductDetail config={config} product={product} related={related} />;
 }

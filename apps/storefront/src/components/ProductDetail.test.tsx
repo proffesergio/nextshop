@@ -59,4 +59,26 @@ describe("ProductDetail", () => {
     const link = screen.getByRole("link", { name: /back to shop/i });
     expect(link).toHaveAttribute("href", "/");
   });
+
+  it("shows rating, discount and stock urgency when present", () => {
+    render(
+      <ProductDetail
+        config={config}
+        product={{ ...avocado, rating: 4.7, reviewCount: 132, compareAtAmount: 199, stock: 3 }}
+      />,
+    );
+    expect(screen.getByLabelText(/rated 4\.7 out of 5/i)).toBeInTheDocument();
+    expect(screen.getByText("−25%")).toBeInTheDocument();
+    expect(screen.getByText(/1,99/)).toBeInTheDocument();
+    expect(screen.getByText("Only 3 left")).toBeInTheDocument();
+  });
+
+  it("renders related products linking to their detail pages", () => {
+    const related: Product[] = [
+      { id: "g3", title: "Cherry Tomatoes", amount: 210, currency: "eur", thumbnail: "🍅", category: "produce" },
+    ];
+    render(<ProductDetail config={config} product={avocado} related={related} />);
+    const shelf = screen.getByLabelText("You may also like");
+    expect(shelf).toHaveTextContent("Cherry Tomatoes");
+  });
 });

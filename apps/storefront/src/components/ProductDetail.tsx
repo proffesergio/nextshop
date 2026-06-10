@@ -2,11 +2,19 @@
 
 import { useState } from "react";
 import type { StoreConfig } from "@nextshop/config";
-import { formatPrice, type Product } from "@nextshop/commerce-core";
-import { Badge, Button, Footer, Header, Page, QuantityStepper } from "@nextshop/ui";
+import { discountPercent, formatPrice, type Product } from "@nextshop/commerce-core";
+import { Badge, Button, Footer, Header, Page, ProductShelf, ProductCard, QuantityStepper, RatingStars } from "@nextshop/ui";
 import { useCart } from "@/lib/useCart";
 
-export function ProductDetail({ config, product }: { config: StoreConfig; product: Product }) {
+export function ProductDetail({
+  config,
+  product,
+  related = [],
+}: {
+  config: StoreConfig;
+  product: Product;
+  related?: Product[];
+}) {
   const locale = config.locales.default;
   const cart = useCart(config.id);
   const [qty, setQty] = useState(1);
@@ -14,6 +22,7 @@ export function ProductDetail({ config, product }: { config: StoreConfig; produc
 
   const isUrl = product.thumbnail?.startsWith("http") || product.thumbnail?.startsWith("/");
   const price = formatPrice({ amount: product.amount, currency: product.currency }, locale);
+  const pct = discountPercent(product);
 
   const handleAdd = () => {
     cart.add(product, qty);
@@ -120,18 +129,49 @@ export function ProductDetail({ config, product }: { config: StoreConfig; produc
               {product.title}
             </h1>
 
-            <strong
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "2rem",
-                background: "var(--gradient-cta)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              {price}
-            </strong>
+            {typeof product.rating === "number" && (
+              <RatingStars rating={product.rating} reviewCount={product.reviewCount} size="1.05rem" />
+            )}
+
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
+              <strong
+                style={{
+                  fontFamily: "var(--font-display)",
+                  fontSize: "2rem",
+                  background: "var(--gradient-cta)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                {price}
+              </strong>
+              {pct > 0 && product.compareAtAmount && (
+                <>
+                  <s style={{ opacity: 0.5, fontSize: "1.1rem" }}>
+                    {formatPrice({ amount: product.compareAtAmount, currency: product.currency }, locale)}
+                  </s>
+                  <span
+                    style={{
+                      background: "var(--color-accent)",
+                      color: "#fff",
+                      fontWeight: 800,
+                      fontSize: "0.85rem",
+                      padding: "4px 10px",
+                      borderRadius: 999,
+                    }}
+                  >
+                    −{pct}%
+                  </span>
+                </>
+              )}
+            </div>
+
+            {typeof product.stock === "number" && product.stock <= 5 && (
+              <p style={{ margin: 0, fontWeight: 700, color: "var(--color-accent)" }}>
+                {product.stock === 0 ? "Out of stock" : `Only ${product.stock} left`}
+              </p>
+            )}
 
             {/* Qty + Add */}
             <div style={{ display: "flex", alignItems: "center", gap: "var(--space-4)", flexWrap: "wrap", marginTop: "var(--space-2)" }}>
@@ -163,6 +203,29 @@ export function ProductDetail({ config, product }: { config: StoreConfig; produc
             </div>
           </div>
         </div>
+
+        {related.length > 0 && (
+          <ProductShelf ariaLabel="You may also like" title="You may also like">
+            {related.map((p) => (
+              <ProductCard
+                key={p.id}
+                product={{
+                  id: p.id,
+                  title: p.title,
+                  price: formatPrice({ amount: p.amount, currency: p.currency }, locale),
+                  thumbnail: p.thumbnail,
+                  tag: p.tag,
+                  rating: p.rating,
+                  reviewCount: p.reviewCount,
+                }}
+                onAdd={(id) => {
+                  const item = related.find((r) => r.id === id);
+                  if (item) cart.add(item);
+                }}
+              />
+            ))}
+          </ProductShelf>
+        )}
       </main>
 
       <Footer brandName={config.brand.name} />
