@@ -1,4 +1,4 @@
-import { integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { doublePrecision, integer, jsonb, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import type { OrderItem } from "@nextshop/commerce-core";
 
 /** Catalog. Prices are integer minor units (matches commerce-core Money). */
@@ -26,4 +26,7 @@ export const orders = pgTable("orders", {
   customerName: text("customer_name").notNull(),
   customerAddress: text("customer_address"),
   items: jsonb("items").$type<OrderItem[]>().notNull(),
+  courierLat: doublePrecision("courier_lat"),
+  courierLng: doublePrecision("courier_lng"),
+  courierUpdatedAt: timestamp("courier_updated_at", { withTimezone: true }),
 });

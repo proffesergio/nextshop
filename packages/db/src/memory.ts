@@ -59,4 +59,12 @@ export class InMemoryRepository implements CommerceRepository {
     this.orders.set(id, updated);
     return updated;
   }
+
+  async updateOrderLocation(id: string, loc: { lat: number; lng: number }): Promise<Order | null> {
+    const existing = this.orders.get(id);
+    if (!existing) return null;
+    const updated: Order = { ...existing, courier: { ...loc, updatedAt: new Date().toISOString() } };
+    this.orders.set(id, updated);
+    return updated;
+  }
 }

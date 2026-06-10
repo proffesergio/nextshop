@@ -17,6 +17,7 @@ export interface CommerceRepository {
   listOrders(): Promise<Order[]>;
   getOrder(id: string): Promise<Order | null>;
   updateOrderStatus(id: string, status: OrderStatus): Promise<Order | null>;
+  updateOrderLocation(id: string, loc: { lat: number; lng: number }): Promise<Order | null>;
 }
 
 /** Generate an id (uuid where available, else a timestamp-based fallback). */

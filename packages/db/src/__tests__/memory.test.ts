@@ -62,4 +62,13 @@ describe("InMemoryRepository — orders", () => {
     const repo = new InMemoryRepository();
     expect(await repo.updateOrderStatus("missing", "shipped")).toBeNull();
   });
+
+  it("stores and returns the courier location", async () => {
+    const repo = new InMemoryRepository();
+    const order = await repo.createOrder(draft);
+    const updated = await repo.updateOrderLocation(order.id, { lat: 60.17, lng: 24.94 });
+    expect(updated?.courier?.lat).toBe(60.17);
+    expect(updated?.courier?.updatedAt).toBeTruthy();
+    expect(await repo.updateOrderLocation("missing", { lat: 0, lng: 0 })).toBeNull();
+  });
 });

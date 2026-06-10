@@ -63,8 +63,16 @@ export interface OrderDraft {
   status: OrderStatus;
 }
 
+/** Live courier position (Phase 2 GPS tracking). */
+export interface CourierLocation {
+  lat: number;
+  lng: number;
+  updatedAt: string;
+}
+
 /** A persisted order. */
 export interface Order extends OrderDraft {
   id: string;
   createdAt: string;
+  courier?: CourierLocation;
 }

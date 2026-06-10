@@ -32,6 +32,16 @@ function rowToOrder(r: OrderRow): Order {
     fulfillment: { method: r.method as "delivery" | "pickup", slot: r.slot },
     customer: { name: r.customerName, ...(r.customerAddress ? { address: r.customerAddress } : {}) },
     items: r.items,
+    ...(r.courierLat != null && r.courierLng != null
+      ? {
+          courier: {
+            lat: r.courierLat,
+            lng: r.courierLng,
+            updatedAt:
+              r.courierUpdatedAt instanceof Date ? r.courierUpdatedAt.toISOString() : String(r.courierUpdatedAt ?? ""),
+          },
+        }
+      : {}),
   };
 }
 
@@ -96,6 +106,15 @@ export class NeonRepository implements CommerceRepository {
 
   async updateOrderStatus(id: string, status: OrderStatus): Promise<Order | null> {
     const [row] = await this.db.update(orders).set({ status }).where(eq(orders.id, id)).returning();
+    return row ? rowToOrder(row) : null;
+  }
+
+  async updateOrderLocation(id: string, loc: { lat: number; lng: number }): Promise<Order | null> {
+    const [row] = await this.db
+      .update(orders)
+      .set({ courierLat: loc.lat, courierLng: loc.lng, courierUpdatedAt: new Date() })
+      .where(eq(orders.id, id))
+      .returning();
     return row ? rowToOrder(row) : null;
   }
 }
