@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { riseItem } from "../motion.js";
 import { Badge } from "./Badge.js";
 import { Button } from "./Button.js";
+import { RatingStars } from "./RatingStars.js";
 
 export interface ProductCardProduct {
   id: string;
@@ -14,6 +15,16 @@ export interface ProductCardProduct {
   thumbnail?: string;
   tag?: string;
   origin?: string;
+  /** Formatted pre-discount price, shown struck through when discounted. */
+  compareAtPrice?: string;
+  /** Rounded % off — renders the corner deal badge when > 0. */
+  discountPercent?: number;
+  rating?: number;
+  reviewCount?: number;
+  /** Urgency line, e.g. "Only 3 left". */
+  stockHint?: string;
+  /** Disables the add button and dims the card. */
+  soldOut?: boolean;
 }
 
 /**
@@ -28,6 +39,7 @@ export function ProductCard({
   onAdd?: (id: string) => void;
 }) {
   const isUrl = product.thumbnail?.startsWith("http") || product.thumbnail?.startsWith("/");
+  const onSale = (product.discountPercent ?? 0) > 0;
   return (
     <motion.article
       variants={riseItem}
@@ -43,11 +55,31 @@ export function ProductCard({
         padding: "var(--space-5)",
         boxShadow: "var(--shadow-md)",
         overflow: "hidden",
+        opacity: product.soldOut ? 0.65 : 1,
       }}
     >
       {product.tag && (
-        <div style={{ position: "absolute", top: 16, left: 16 }}>
+        <div style={{ position: "absolute", top: 16, left: 16, zIndex: 1 }}>
           <Badge tone="accent">{product.tag}</Badge>
+        </div>
+      )}
+      {onSale && (
+        <div
+          style={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            zIndex: 1,
+            background: "var(--color-accent)",
+            color: "#fff",
+            fontWeight: 800,
+            fontSize: "0.8rem",
+            padding: "6px 10px",
+            borderRadius: 999,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.18)",
+          }}
+        >
+          −{product.discountPercent}%
         </div>
       )}
       <a
@@ -72,9 +104,19 @@ export function ProductCard({
         </div>
         <h3 style={{ fontSize: "1.15rem", margin: "0 0 4px" }}>{product.title}</h3>
       </a>
+      {typeof product.rating === "number" && (
+        <div style={{ margin: "2px 0 4px" }}>
+          <RatingStars rating={product.rating} reviewCount={product.reviewCount} />
+        </div>
+      )}
       {product.origin && (
         <p style={{ margin: 0, fontSize: "0.85rem", color: "color-mix(in srgb, var(--color-foreground) 60%, transparent)" }}>
           {product.origin}
+        </p>
+      )}
+      {product.stockHint && (
+        <p style={{ margin: "4px 0 0", fontSize: "0.82rem", fontWeight: 700, color: "var(--color-accent)" }}>
+          {product.stockHint}
         </p>
       )}
       <div
@@ -87,16 +129,22 @@ export function ProductCard({
           gap: "var(--space-3)",
         }}
       >
-        <strong style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem" }}>
-          {product.price}
-        </strong>
+        <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
+          {product.compareAtPrice && onSale && (
+            <s style={{ fontSize: "0.82rem", opacity: 0.55 }}>{product.compareAtPrice}</s>
+          )}
+          <strong style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem" }}>
+            {product.price}
+          </strong>
+        </span>
         <Button
           variant="primary"
           style={{ padding: "10px 16px", fontSize: "0.9rem" }}
           onClick={() => onAdd?.(product.id)}
-          aria-label={`Add ${product.title} to cart`}
+          disabled={product.soldOut}
+          aria-label={product.soldOut ? `${product.title} is out of stock` : `Add ${product.title} to cart`}
         >
-          Add +
+          {product.soldOut ? "Sold out" : "Add +"}
         </Button>
       </div>
     </motion.article>
