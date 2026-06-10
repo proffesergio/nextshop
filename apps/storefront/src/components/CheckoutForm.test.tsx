@@ -29,11 +29,39 @@ describe("CheckoutForm", () => {
     expect(screen.getByText("Delivery address is required")).toBeInTheDocument();
   });
 
+  it("offers the client's payment methods and requires a choice", () => {
+    render(<CheckoutForm config={config} />);
+    // finnish-grocer enables stripe, klarna, mobilepay, manual
+    expect(screen.getByRole("radio", { name: /card \(visa/i })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /klarna/i })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /mobilepay/i })).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /pay on delivery/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /place order/i }));
+    expect(screen.getByText("Please choose a payment method")).toBeInTheDocument();
+  });
+
+  it("sends the payment with the order and shows it on confirmation", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ id: "order_9" }) });
+    vi.stubGlobal("fetch", fetchMock);
+    render(<CheckoutForm config={config} />);
+    fireEvent.click(screen.getByRole("radio", { name: /store pickup/i }));
+    fireEvent.change(screen.getByLabelText("Your name"), { target: { value: "Aino" } });
+    fireEvent.click(screen.getByRole("button", { name: "10:00–11:00" }));
+    fireEvent.click(screen.getByRole("radio", { name: /pay on delivery/i }));
+    fireEvent.click(screen.getByRole("button", { name: /place order/i }));
+    expect(screen.getByText("Order placed!")).toBeInTheDocument();
+    expect(screen.getByText(/Pay on delivery \/ pickup/)).toBeInTheDocument();
+    const body = JSON.parse(String(fetchMock.mock.calls[0]![1]?.body));
+    expect(body.payment).toEqual({ method: "manual", status: "pending" });
+    vi.unstubAllGlobals();
+  });
+
   it("places a valid delivery order and shows confirmation", () => {
     render(<CheckoutForm config={config} />);
     fireEvent.change(screen.getByLabelText("Your name"), { target: { value: "Aino" } });
     fireEvent.change(screen.getByLabelText("Delivery address"), { target: { value: "Mannerheimintie 1" } });
     fireEvent.click(screen.getByRole("button", { name: "09:00–10:00" }));
+    fireEvent.click(screen.getByRole("radio", { name: /card \(visa/i }));
     fireEvent.click(screen.getByRole("button", { name: /place order/i }));
     expect(screen.getByText("Order placed!")).toBeInTheDocument();
     expect(screen.getByText(/09:00–10:00/)).toBeInTheDocument();
@@ -45,6 +73,7 @@ describe("CheckoutForm", () => {
     fireEvent.click(screen.getByRole("radio", { name: /store pickup/i }));
     fireEvent.change(screen.getByLabelText("Your name"), { target: { value: "Aino" } });
     fireEvent.click(screen.getByRole("button", { name: "10:00–11:00" }));
+    fireEvent.click(screen.getByRole("radio", { name: /mobilepay/i }));
     fireEvent.click(screen.getByRole("button", { name: /place order/i }));
     const link = await screen.findByRole("link", { name: /track your order/i });
     expect(link).toHaveAttribute("href", "/orders/order_1");
@@ -56,6 +85,7 @@ describe("CheckoutForm", () => {
     fireEvent.click(screen.getByRole("radio", { name: /store pickup/i }));
     fireEvent.change(screen.getByLabelText("Your name"), { target: { value: "Aino" } });
     fireEvent.click(screen.getByRole("button", { name: "10:00–11:00" }));
+    fireEvent.click(screen.getByRole("radio", { name: /klarna/i }));
     fireEvent.click(screen.getByRole("button", { name: /place order/i }));
     expect(screen.getByText("Order placed!")).toBeInTheDocument();
   });

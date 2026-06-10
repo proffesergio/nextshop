@@ -21,4 +21,5 @@ export { CategoryShowcase, type CategoryTile } from "./components/CategoryShowca
 export { ProductShelf } from "./components/ProductShelf.js";
 export { PromoBanner } from "./components/PromoBanner.js";
 export { NewsletterSignup } from "./components/NewsletterSignup.js";
+export { PaymentMethodPicker } from "./components/PaymentMethodPicker.js";
 export * from "./motion.js";

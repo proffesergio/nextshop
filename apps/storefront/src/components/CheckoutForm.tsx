@@ -3,14 +3,16 @@
 import { useMemo, useState } from "react";
 import type { StoreConfig } from "@nextshop/config";
 import {
+  availablePaymentMethods,
   buildOrderDraft,
   formatPrice,
   generateTimeSlots,
   orderTotal,
   validateCheckout,
+  validatePaymentSelection,
   type FulfillmentMethod,
 } from "@nextshop/commerce-core";
-import { Button, FulfillmentToggle, Page, SlotPicker } from "@nextshop/ui";
+import { Button, FulfillmentToggle, Page, PaymentMethodPicker, SlotPicker } from "@nextshop/ui";
 import { useCart } from "@/lib/useCart";
 
 const DELIVERY_FEE = 499; // minor units; a real store would source this from config/backend
@@ -22,8 +24,13 @@ export function CheckoutForm({ config }: { config: StoreConfig }) {
   const deliveryFee = { amount: DELIVERY_FEE, currency: config.currency };
 
   const slots = useMemo(() => generateTimeSlots({ openHour: 9, closeHour: 18, slotMinutes: 60 }), []);
+  const payMethods = useMemo(
+    () => availablePaymentMethods(config.payments.enabledProviders),
+    [config.payments.enabledProviders],
+  );
 
   const [method, setMethod] = useState<FulfillmentMethod>("delivery");
+  const [payMethod, setPayMethod] = useState<string | null>(null);
   const [slot, setSlot] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
@@ -36,6 +43,9 @@ export function CheckoutForm({ config }: { config: StoreConfig }) {
   const placeOrder = () => {
     const errs = validateCheckout({ name, method, address, slot: slot ?? "" });
     if (cart.cart.length === 0) errs.push("Your cart is empty");
+    if (payMethods.length > 0 && !validatePaymentSelection(payMethod ?? "", config.payments.enabledProviders)) {
+      errs.push("Please choose a payment method");
+    }
     setErrors(errs);
     if (errs.length === 0) {
       // Fire-and-forget: persist the order in the background without blocking
@@ -47,6 +57,7 @@ export function CheckoutForm({ config }: { config: StoreConfig }) {
           customerName: name,
           address: method === "delivery" ? address : undefined,
           deliveryFee,
+          paymentMethod: payMethod ?? undefined,
         });
         fetch("/api/orders", {
           method: "POST",
@@ -80,6 +91,12 @@ export function CheckoutForm({ config }: { config: StoreConfig }) {
             Thanks, {name || "friend"}. Your {method === "delivery" ? "delivery" : "pickup"} is booked for{" "}
             <strong>{slot}</strong>. You’ll get real-time status updates as it’s prepared.
           </p>
+          {payMethod && (
+            <p style={{ opacity: 0.75 }}>
+              Payment: <strong>{payMethods.find((m) => m.id === payMethod)?.label}</strong>
+              {payMethods.find((m) => m.id === payMethod)?.kind === "cod" ? " — pay when you receive it" : " — paid ✓"}
+            </p>
+          )}
           {trackId && (
             <a href={`/orders/${trackId}`} style={{ textDecoration: "none", display: "block" }}>
               <Button variant="primary" style={{ marginTop: "var(--space-4)" }}>
@@ -159,6 +176,14 @@ export function CheckoutForm({ config }: { config: StoreConfig }) {
           <h2 style={{ fontSize: "1.2rem" }}>{method === "delivery" ? "Delivery" : "Pickup"} time</h2>
           <SlotPicker slots={slots} selected={slot} onSelect={setSlot} />
         </section>
+
+        {/* Payment */}
+        {payMethods.length > 0 && (
+          <section>
+            <h2 style={{ fontSize: "1.2rem" }}>How would you like to pay?</h2>
+            <PaymentMethodPicker methods={payMethods} selected={payMethod} onSelect={setPayMethod} />
+          </section>
+        )}
 
         {/* Contact */}
         <label style={{ display: "flex", flexDirection: "column", gap: 8 }}>
