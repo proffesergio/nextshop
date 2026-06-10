@@ -19,6 +19,12 @@ export interface Product {
   origin?: string;
   /** Units on hand. Omitted = inventory not tracked for this product. */
   stock?: number;
+  /** Pre-discount price in minor units; > amount means the product is on sale. */
+  compareAtAmount?: number;
+  /** Average review rating, 0–5. */
+  rating?: number;
+  /** Number of reviews behind the rating. */
+  reviewCount?: number;
 }
 
 /** A line in the cart: a product and its quantity. */
