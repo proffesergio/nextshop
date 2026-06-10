@@ -4,24 +4,34 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { StoreConfig } from "@nextshop/config";
 import {
+  dealProducts,
+  discountPercent,
   filterProducts,
   formatPrice,
   sortProducts,
   suggestProducts,
+  topRated,
   type Product,
   type ProductSort,
 } from "@nextshop/commerce-core";
 import {
+  AnnouncementBar,
   Button,
   CartDrawer,
+  CategoryShowcase,
   CategoryTabs,
   Footer,
   Header,
   Hero,
   ListsDrawer,
+  NewsletterSignup,
   Page,
+  ProductCard,
   ProductGrid,
+  ProductShelf,
+  PromoBanner,
   SearchAutocomplete,
+  UspStrip,
   type ProductCardProduct,
 } from "@nextshop/ui";
 import { useCart } from "@/lib/useCart";
@@ -44,19 +54,46 @@ export function StoreHome({ config, products }: { config: StoreConfig; products:
     [products],
   );
 
+  const categoryTiles = useMemo(
+    () =>
+      categories.map((c) => ({
+        id: c,
+        label: c,
+        icon: products.find((p) => p.category === c)?.thumbnail ?? "🛍️",
+        count: products.filter((p) => p.category === c).length,
+      })),
+    [categories, products],
+  );
+
+  const deals = useMemo(() => dealProducts(products).slice(0, 8), [products]);
+  const best = useMemo(() => topRated(products).slice(0, 8), [products]);
+
   const visible = useMemo(
     () => sortProducts(filterProducts(products, { query, category: category ?? undefined }), sort),
     [products, query, category, sort],
   );
 
-  const toCard = (p: Product): ProductCardProduct => ({
-    id: p.id,
-    title: p.title,
-    price: formatPrice({ amount: p.amount, currency: p.currency }, locale),
-    thumbnail: p.thumbnail,
-    tag: p.tag,
-    origin: p.origin,
-  });
+  const toCard = (p: Product): ProductCardProduct => {
+    const pct = discountPercent(p);
+    return {
+      id: p.id,
+      title: p.title,
+      price: formatPrice({ amount: p.amount, currency: p.currency }, locale),
+      thumbnail: p.thumbnail,
+      tag: p.tag,
+      origin: p.origin,
+      rating: p.rating,
+      reviewCount: p.reviewCount,
+      ...(pct > 0 && p.compareAtAmount
+        ? { discountPercent: pct, compareAtPrice: formatPrice({ amount: p.compareAtAmount, currency: p.currency }, locale) }
+        : {}),
+      ...(p.stock === 0
+        ? { soldOut: true, stockHint: "Out of stock" }
+        : typeof p.stock === "number" && p.stock <= 5
+          ? { stockHint: `Only ${p.stock} left` }
+          : {}),
+    };
+  };
 
   const addById = (id: string) => {
     const product = products.find((p) => p.id === id);
@@ -74,8 +111,15 @@ export function StoreHome({ config, products }: { config: StoreConfig; products:
     setCartOpen(true);
   };
 
+  const jumpToShop = (cat: string | null) => {
+    setCategory(cat);
+    document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <Page>
+      {config.marketing.announcement && <AnnouncementBar>{config.marketing.announcement}</AnnouncementBar>}
+
       <Header
         brandName={config.brand.name}
         logo={config.brand.logo}
@@ -108,19 +152,69 @@ export function StoreHome({ config, products }: { config: StoreConfig; products:
           subtitle="Search, build your cart, and check out in a few taps. Real-time order tracking from cart to doorstep."
           actions={
             <>
-              <Button variant="primary" onClick={() => document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" })}>
+              <Button variant="primary" onClick={() => jumpToShop(null)}>
                 Start shopping
               </Button>
-              <Button variant="outline" style={{ color: "#fff", borderColor: "rgba(255,255,255,0.6)" }}>
-                How it works
-              </Button>
+              {deals.length > 0 && (
+                <Button
+                  variant="outline"
+                  style={{ color: "#fff", borderColor: "rgba(255,255,255,0.6)" }}
+                  onClick={() => document.getElementById("deals")?.scrollIntoView({ behavior: "smooth" })}
+                >
+                  🔥 Today's deals
+                </Button>
+              )}
             </>
           }
         />
 
-        <section id="shop" style={{ marginTop: "var(--space-8)" }}>
+        {config.marketing.usps.length > 0 && (
+          <div style={{ marginTop: "var(--space-6)" }}>
+            <UspStrip items={config.marketing.usps} />
+          </div>
+        )}
+
+        {categoryTiles.length > 0 && (
+          <section aria-label="Shop by category" style={{ marginTop: "var(--space-7)" }}>
+            <h2 style={{ fontFamily: "var(--font-display)", marginBottom: "var(--space-4)" }}>Shop by category</h2>
+            <CategoryShowcase categories={categoryTiles} onSelect={(id) => jumpToShop(id)} />
+          </section>
+        )}
+
+        {deals.length > 0 && (
+          <div id="deals">
+            <ProductShelf
+              ariaLabel="Deals of the day"
+              title="🔥 Deals of the day"
+              subtitle="Limited stock — prices snap back soon"
+              action={
+                <Button variant="ghost" style={{ padding: "8px 16px", fontSize: "0.9rem" }} onClick={() => jumpToShop(null)}>
+                  See all
+                </Button>
+              }
+            >
+              {deals.map((p) => (
+                <ProductCard key={p.id} product={toCard(p)} onAdd={addById} />
+              ))}
+            </ProductShelf>
+          </div>
+        )}
+
+        {best.length > 0 && (
+          <ProductShelf
+            ariaLabel="Top rated"
+            title="⭐ Loved by customers"
+            subtitle="Rated 4.5 and up"
+          >
+            {best.map((p) => (
+              <ProductCard key={p.id} product={toCard(p)} onAdd={addById} />
+            ))}
+          </ProductShelf>
+        )}
+
+        <section id="shop" aria-label="All products" style={{ marginTop: "var(--space-8)" }}>
           <div style={{ display: "flex", gap: "var(--space-4)", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
-            <h2 style={{ margin: 0 }}>Shop</h2>
+            <h2 style={{ margin: 0, fontFamily: "var(--font-display)" }}>All products</h2>
             <SearchAutocomplete
               value={query}
               onChange={setQuery}
@@ -157,6 +251,26 @@ export function StoreHome({ config, products }: { config: StoreConfig; products:
             )}
           </div>
         </section>
+
+        {config.marketing.promos.length > 0 && (
+          <section
+            aria-label="Promotions"
+            style={{
+              marginTop: "var(--space-8)",
+              display: "grid",
+              gap: "var(--space-5)",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+            }}
+          >
+            {config.marketing.promos.map((promo) => (
+              <PromoBanner key={promo.title} {...promo} />
+            ))}
+          </section>
+        )}
+
+        <div style={{ marginTop: "var(--space-8)" }}>
+          <NewsletterSignup />
+        </div>
       </main>
 
       <Footer brandName={config.brand.name} />

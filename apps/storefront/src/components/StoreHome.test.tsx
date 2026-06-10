@@ -26,9 +26,12 @@ const config = registry["finnish-grocer"]!;
 // Isolate tests — useCart persists to localStorage, which would otherwise leak between tests.
 beforeEach(() => localStorage.clear());
 
+// Ratings stay below the top-rated threshold (4.5) so no product repeats on a
+// "Top rated" shelf — keeps single-instance queries below unambiguous.
 const products: Product[] = [
-  { id: "p1", title: "Organic Avocado", amount: 149, currency: "eur", thumbnail: "🥑", tag: "Organic", category: "produce" },
+  { id: "p1", title: "Organic Avocado", amount: 149, currency: "eur", thumbnail: "🥑", tag: "Organic", category: "produce", rating: 4.4, reviewCount: 12 },
   { id: "p2", title: "Sourdough Rye", amount: 320, currency: "eur", thumbnail: "🍞", category: "bakery" },
+  { id: "p3", title: "Cherry Tomatoes", amount: 210, compareAtAmount: 280, currency: "eur", thumbnail: "🍅", category: "produce", stock: 2 },
 ];
 
 describe("StoreHome", () => {
@@ -47,8 +50,27 @@ describe("StoreHome", () => {
   it("filters products via search", () => {
     render(<StoreHome config={config} products={products} />);
     fireEvent.change(screen.getByLabelText("Search products"), { target: { value: "sourdough" } });
-    expect(screen.getByText("Sourdough Rye")).toBeInTheDocument();
-    expect(screen.queryByText("Organic Avocado")).not.toBeInTheDocument();
+    const catalog = screen.getByLabelText("All products");
+    expect(within(catalog).getByText("Sourdough Rye")).toBeInTheDocument();
+    expect(within(catalog).queryByText("Organic Avocado")).not.toBeInTheDocument();
+  });
+
+  it("shows the announcement bar from config marketing", () => {
+    render(<StoreHome config={config} products={products} />);
+    expect(screen.getByRole("status")).toHaveTextContent(/free delivery/i);
+  });
+
+  it("renders the USP strip", () => {
+    render(<StoreHome config={config} products={products} />);
+    expect(screen.getByText("Farm fresh")).toBeInTheDocument();
+  });
+
+  it("puts discounted products on the deals shelf with badge and stock urgency", () => {
+    render(<StoreHome config={config} products={products} />);
+    const shelf = screen.getByLabelText("Deals of the day");
+    expect(within(shelf).getByText("Cherry Tomatoes")).toBeInTheDocument();
+    expect(within(shelf).getByText("−25%")).toBeInTheDocument();
+    expect(within(shelf).getByText("Only 2 left")).toBeInTheDocument();
   });
 
   it("adds to cart and shows the count", () => {

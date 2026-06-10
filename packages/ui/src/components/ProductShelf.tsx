@@ -8,15 +8,17 @@ export function ProductShelf({
   title,
   subtitle,
   action,
+  ariaLabel,
   children,
 }: {
   title: ReactNode;
   subtitle?: ReactNode;
   action?: ReactNode;
+  ariaLabel?: string;
   children: ReactNode;
 }) {
   return (
-    <section style={{ margin: "var(--space-7) 0" }}>
+    <section aria-label={ariaLabel} style={{ margin: "var(--space-7) 0" }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: "var(--space-4)", marginBottom: "var(--space-4)" }}>
         <h2 style={{ margin: 0, fontFamily: "var(--font-display)" }}>{title}</h2>
         {subtitle && (
