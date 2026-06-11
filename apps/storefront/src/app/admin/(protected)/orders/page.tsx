@@ -1,7 +1,8 @@
-import { formatPrice } from "@nextshop/commerce-core";
+import { formatPrice, PAYMENT_PROVIDERS } from "@nextshop/commerce-core";
 import { getStoreRepository } from "@/lib/products";
 import { AdminOrderStatus } from "@/components/AdminOrderStatus";
 import { AdminCourierLocation } from "@/components/AdminCourierLocation";
+import { AdminMarkPaid } from "@/components/AdminMarkPaid";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export default async function AdminOrdersPage() {
             <th>Customer</th>
             <th>Fulfilment</th>
             <th>Total</th>
+            <th>Payment</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -35,6 +37,24 @@ export default async function AdminOrdersPage() {
                 {o.fulfillment.method} · {o.fulfillment.slot}
               </td>
               <td>{formatPrice(o.total)}</td>
+              <td>
+                {o.payment ? (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    {PAYMENT_PROVIDERS[o.payment.method]?.icon ?? "💳"}{" "}
+                    {PAYMENT_PROVIDERS[o.payment.method]?.label ?? o.payment.method}
+                    {o.payment.status === "paid" ? (
+                      <strong style={{ color: "var(--color-primary)" }}>paid</strong>
+                    ) : (
+                      <>
+                        <strong style={{ color: "var(--color-accent)" }}>pending</strong>
+                        <AdminMarkPaid orderId={o.id} />
+                      </>
+                    )}
+                  </span>
+                ) : (
+                  "—"
+                )}
+              </td>
               <td>
                 <AdminOrderStatus orderId={o.id} status={o.status} />
                 {o.status === "shipped" && (

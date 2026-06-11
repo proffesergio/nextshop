@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   formatPrice,
   orderTimeline,
+  PAYMENT_PROVIDERS,
   trackingProgress,
   type Order,
 } from "@nextshop/commerce-core";
@@ -109,6 +110,17 @@ export function OrderTracking({ initial, gps, locale }: { initial: Order; gps: b
           {order.fulfillment.method === "delivery" ? "Delivery" : "Pickup"} · {order.fulfillment.slot}
           {order.customer.address ? ` · ${order.customer.address}` : ""}
         </p>
+        {order.payment && (
+          <p style={{ margin: "6px 0 0", fontSize: "0.9rem" }}>
+            {PAYMENT_PROVIDERS[order.payment.method]?.icon ?? "💳"}{" "}
+            <strong>{PAYMENT_PROVIDERS[order.payment.method]?.label ?? order.payment.method}</strong>{" "}
+            {order.payment.status === "paid" ? (
+              <span style={{ color: "var(--color-primary)", fontWeight: 700 }}>paid ✓</span>
+            ) : (
+              <span style={{ color: "var(--color-accent)", fontWeight: 700 }}>pay on receipt</span>
+            )}
+          </p>
+        )}
       </section>
     </div>
   );

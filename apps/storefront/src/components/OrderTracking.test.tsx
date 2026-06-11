@@ -12,6 +12,7 @@ const order: Order = {
   fulfillment: { method: "delivery", slot: "10:00–11:00" },
   customer: { name: "Aino", address: "Mannerheimintie 1" },
   courier: { lat: 60.17, lng: 24.94, updatedAt: "2026-06-10T09:30:00.000Z" },
+  payment: { method: "manual", status: "pending" },
 };
 
 beforeEach(() => {
@@ -36,6 +37,15 @@ describe("OrderTracking", () => {
     unmount();
     render(<OrderTracking initial={{ ...order, courier: undefined }} gps={true} locale="fi" />);
     expect(screen.queryByTitle("Courier location")).not.toBeInTheDocument();
+  });
+
+  it("shows the payment method and its status", () => {
+    render(<OrderTracking initial={order} gps={false} locale="fi" />);
+    expect(screen.getByText(/Pay on delivery \/ pickup/)).toBeInTheDocument();
+    expect(screen.getByText(/pay on receipt/i)).toBeInTheDocument();
+    render(<OrderTracking initial={{ ...order, id: "o2", payment: { method: "bkash", status: "paid" } }} gps={false} locale="fi" />);
+    expect(screen.getByText(/bKash/)).toBeInTheDocument();
+    expect(screen.getByText(/paid ✓/i)).toBeInTheDocument();
   });
 
   it("polls the public order API every 10 seconds", async () => {

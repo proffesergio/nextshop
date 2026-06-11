@@ -7,6 +7,7 @@ vi.mock("@/lib/auth", () => ({ auth: vi.fn() }));
 import { auth } from "@/lib/auth";
 import { PATCH } from "./[id]/route";
 import { PATCH as PATCH_LOCATION } from "./[id]/location/route";
+import { PATCH as PATCH_PAYMENT } from "./[id]/payment/route";
 
 const authMock = auth as unknown as ReturnType<typeof vi.fn>;
 
@@ -48,6 +49,34 @@ describe("PATCH /api/admin/orders/[id]", () => {
     expect((await patch("nope", "packing")).status).toBe(404);
     const order = await getRepository().createOrder(draft);
     expect((await patch(order.id, "teleported")).status).toBe(400);
+  });
+});
+
+describe("PATCH /api/admin/orders/[id]/payment", () => {
+  const markPaid = (id: string) =>
+    PATCH_PAYMENT(new Request("http://test", { method: "PATCH" }), { params: { id } });
+
+  it("rejects unauthenticated requests", async () => {
+    authMock.mockResolvedValue(null);
+    expect((await markPaid("any")).status).toBe(401);
+  });
+
+  it("marks a pending payment as paid", async () => {
+    const order = await getRepository().createOrder({ ...draft, payment: { method: "manual", status: "pending" } });
+    const res = await markPaid(order.id);
+    expect(res.status).toBe(200);
+    expect((await res.json()).payment.status).toBe("paid");
+  });
+
+  it("409s when the order has no payment or is already paid", async () => {
+    const noPayment = await getRepository().createOrder(draft);
+    expect((await markPaid(noPayment.id)).status).toBe(409);
+    const paid = await getRepository().createOrder({ ...draft, payment: { method: "bkash", status: "paid" } });
+    expect((await markPaid(paid.id)).status).toBe(409);
+  });
+
+  it("404s for unknown orders", async () => {
+    expect((await markPaid("nope")).status).toBe(404);
   });
 });
 
