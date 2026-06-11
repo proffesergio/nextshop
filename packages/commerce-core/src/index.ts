@@ -9,3 +9,4 @@ export * from "./admin.js";
 export * from "./tracking.js";
 export * from "./merchandising.js";
 export * from "./payments.js";
+export * from "./routing.js";

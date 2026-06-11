@@ -25,6 +25,8 @@ export interface Product {
   rating?: number;
   /** Number of reviews behind the rating. */
   reviewCount?: number;
+  /** Warehouse that stocks this product (StoreConfig.warehouses id). Omitted = first local. */
+  warehouseId?: string;
 }
 
 /** A line in the cart: a product and its quantity. */
