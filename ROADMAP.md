@@ -9,7 +9,7 @@ spec → plan (`writing-plans/`) → build cycle, so any session can resume by r
 | **1 — Storefront UX/UI** | Search + **autocomplete**, category nav, sort, cart drawer, saved shopping lists, checkout w/ delivery & pickup slots, **product detail page** ✅ | ✅ Done |
 | **1.5 — Owner admin** | `/admin` (Auth.js credentials): product CRUD, inventory (stock), order-status flow; `ownerAdmin` flag | ✅ Done |
 | **2 — Order tracking** | Real-time status (packing/shipped) + GPS map | ✅ Done |
-| **3 — Payments** | Stripe cards, MobilePay, Klarna (FI) · bKash, Nagad, COD (BD) — region-driven via config | ⬜ Not started |
+| **3 — Payments** | Stripe cards, MobilePay, Klarna (FI) · bKash, Nagad, COD (BD) — region-driven via config; provider-agnostic layer (sandbox capture; real gateway SDKs plug in per client) | ✅ Done |
 | **4 — Compliance / logistics** | Multi-warehouse routing (FI + BD supplier), GSP/preferential-origin duties, PEPPOL e-invoicing, phytosanitary docs | ⬜ Not started |
 | **5 — i18n / GDPR / PWA hardening** | Finnish + English (+ Bangla for FreeStyleBD), GDPR consent, offline caching, Lighthouse perf | ⬜ Not started |
 

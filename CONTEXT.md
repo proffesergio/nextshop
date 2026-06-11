@@ -63,6 +63,18 @@ Top-rated shelves → catalog → promos → newsletter. ProductDetail: rating/d
 shelf. 151 tests green; typecheck/lint/builds green. **Live MVP:** local prod server :3000 +
 cloudflared tunnel (recipe `docs/DEPLOY.md` §1.5); admin demo owner@tuore.demo / tuore-demo-2026.
 
+**Phase 3 payments COMPLETE (green):** provider-agnostic layer (plan:
+`writing-plans/phase-3-payments.md`). commerce-core `payments.ts` (PAYMENT_PROVIDERS catalog:
+stripe/card/klarna/mobilepay/bkash/nagad/cod/manual; availablePaymentMethods,
+validatePaymentSelection, paymentForMethod — instant=paid (sandbox), cod=pending);
+`Order.payment {method,status}` persisted (db cols + `updateOrderPayment`); ui
+`PaymentMethodPicker`; checkout payment step driven by `payments.enabledProviders`
+(FI: stripe/klarna/mobilepay/manual · BD: bkash/nagad/card/manual); tracking shows pay status;
+admin orders: payment column + Mark paid (PATCH /api/admin/orders/[id]/payment, 409 if paid).
+166 tests green (commerce-core 74, storefront 68, db 8, config 11, scripts 5). Real gateway
+SDKs (Stripe/bKash) plug in later behind the same provider ids. Both demo storefronts live
+(Tuore :3000, FreeStyleBD :3001 via NEXT_DIST_DIR; SaaS-pivot assessment: see graph memory).
+
 **Next (in order):**
 1. **Awaiting client approval** of the live MVP demo (tunnel URL is ephemeral; relaunch recipe
    `docs/DEPLOY.md` §1.5; admin demo owner@tuore.demo / tuore-demo-2026).
