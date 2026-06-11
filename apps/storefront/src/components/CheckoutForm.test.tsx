@@ -29,6 +29,22 @@ describe("CheckoutForm", () => {
     expect(screen.getByText("Delivery address is required")).toBeInTheDocument();
   });
 
+  it("shows the shipment plan when the cart spans warehouses", () => {
+    localStorage.setItem(
+      `nextshop:cart:${config.id}`,
+      JSON.stringify([
+        { product: { id: "a", title: "Avocado", amount: 149, currency: "eur" }, qty: 1 },
+        { product: { id: "m", title: "Alphonso Mango", amount: 450, currency: "eur", warehouseId: "bd-supplier" }, qty: 2 },
+      ]),
+    );
+    render(<CheckoutForm config={config} />);
+    const plan = screen.getByLabelText("Shipment plan");
+    expect(plan).toHaveTextContent("Helsinki Cold Store");
+    expect(plan).toHaveTextContent("Ships today–tomorrow");
+    expect(plan).toHaveTextContent("Dhaka Supplier");
+    expect(plan).toHaveTextContent("Imported · 7–14 days");
+  });
+
   it("offers the client's payment methods and requires a choice", () => {
     render(<CheckoutForm config={config} />);
     // finnish-grocer enables stripe, klarna, mobilepay, manual

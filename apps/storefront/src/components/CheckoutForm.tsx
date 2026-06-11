@@ -8,6 +8,8 @@ import {
   formatPrice,
   generateTimeSlots,
   orderTotal,
+  planShipments,
+  shipmentEtaLabel,
   validateCheckout,
   validatePaymentSelection,
   type FulfillmentMethod,
@@ -39,6 +41,7 @@ export function CheckoutForm({ config }: { config: StoreConfig }) {
   const [trackId, setTrackId] = useState<string | null>(null);
 
   const total = orderTotal(cart.cart, { method, deliveryFee });
+  const shipments = planShipments(cart.cart, config.warehouses);
 
   const placeOrder = () => {
     const errs = validateCheckout({ name, method, address, slot: slot ?? "" });
@@ -156,6 +159,32 @@ export function CheckoutForm({ config }: { config: StoreConfig }) {
             <strong>Total</strong>
             <strong style={{ fontFamily: "var(--font-display)", fontSize: "1.25rem" }}>{formatPrice(total, locale)}</strong>
           </div>
+          {shipments.length > 0 && (
+            <div
+              aria-label="Shipment plan"
+              role="group"
+              style={{
+                marginTop: 12,
+                paddingTop: 10,
+                borderTop: "1px dashed color-mix(in srgb, var(--color-primary) 14%, transparent)",
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+              }}
+            >
+              {shipments.length > 1 && (
+                <span style={{ fontSize: "0.85rem", fontWeight: 700 }}>
+                  Arrives as {shipments.length} shipments
+                </span>
+              )}
+              {shipments.map((s) => (
+                <span key={s.warehouse.id} style={{ fontSize: "0.85rem", opacity: 0.8 }}>
+                  📦 {s.warehouse.name} · {s.lines.length} item{s.lines.length > 1 ? "s" : ""} ·{" "}
+                  <strong>{shipmentEtaLabel(s)}</strong>
+                </span>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Fulfillment */}
